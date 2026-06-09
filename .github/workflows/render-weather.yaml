@@ -34,7 +34,17 @@ jobs:
       - name: Download Tronbyt Pixlet
         run: |
           set -euo pipefail
-          curl -L "https://github.com/tronbyt/pixlet/releases/download/${PIXLET_VERSION}/pixlet_${PIXLET_VERSION#v}_linux_amd64.tar.gz" -o pixlet.tar.gz
+      
+          PIXLET_VERSION="v0.52.0"
+          URL="https://github.com/tronbyt/pixlet/releases/download/${PIXLET_VERSION}/pixlet_${PIXLET_VERSION#v}_linux_amd64.tar.gz"
+      
+          echo "Downloading: $URL"
+          curl -fL "$URL" -o pixlet.tar.gz
+      
+          echo "Downloaded file details:"
+          ls -lh pixlet.tar.gz
+          file pixlet.tar.gz
+      
           tar -xzf pixlet.tar.gz
           chmod +x pixlet
           ./pixlet version
