@@ -1,24 +1,26 @@
-name: Render Specific Tronbyt App From Upstream Repo
+name: Render Specific Tronbyt App
 
 on:
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   render:
     runs-on: ubuntu-latest
 
     env:
-      PIXLET_VERSION: v0.52.0
       APP_DIR: apps/weather/weather
       APP_FILE: weather.star
       APP_NAME: weather
 
     steps:
       - name: Checkout current repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Checkout only the target app from tronbyt/apps
-        uses: actions/checkout@v4
+      - name: Checkout only the target app from Tronbyt apps repo
+        uses: actions/checkout@v6
         with:
           repository: Tronbyt/apps
           path: tronbyt-apps
@@ -26,27 +28,19 @@ jobs:
             ${{ env.APP_DIR }}
           sparse-checkout-cone-mode: false
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl tar
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
 
-      - name: Download Tronbyt Pixlet
+      - name: Build Tronbyt Pixlet from source
         run: |
           set -euo pipefail
-      
-          PIXLET_VERSION="v0.52.0"
-          URL="https://github.com/tronbyt/pixlet/releases/download/${PIXLET_VERSION}/pixlet_${PIXLET_VERSION#v}_linux_amd64.tar.gz"
-      
-          echo "Downloading: $URL"
-          curl -fL "$URL" -o pixlet.tar.gz
-      
-          echo "Downloaded file details:"
-          ls -lh pixlet.tar.gz
-          file pixlet.tar.gz
-      
-          tar -xzf pixlet.tar.gz
-          chmod +x pixlet
+          git clone --depth 1 https://github.com/tronbyt/pixlet.git
+          cd pixlet
+          go build -o ../pixlet .
+          cd ..
+          chmod +x ./pixlet
           ./pixlet version
 
       - name: Render app
@@ -54,11 +48,13 @@ jobs:
           set -euo pipefail
           ./pixlet render "tronbyt-apps/${APP_DIR}/${APP_FILE}"
 
-      - name: Verify output
+      - name: Verify output exists
         run: |
+          set -euo pipefail
           test -f "tronbyt-apps/${APP_DIR}/${APP_NAME}.webp"
+          ls -lh "tronbyt-apps/${APP_DIR}/${APP_NAME}.webp"
 
-      - name: Upload artifact
+      - name: Upload rendered webp
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-webp
