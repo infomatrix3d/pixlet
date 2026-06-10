@@ -1,0 +1,152 @@
+name: Render and Convert All Pixlet Apps
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  render_and_convert:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebp-dev webp python3 python3-pip curl
+          pip3 install pillow
+
+      - name: Install Pixlet
+        run: |
+          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
+          tar -xvf "pixlet_v0.53.0_linux-amd64.tar.gz"
+          chmod +x ./pixlet
+          sudo mv ./pixlet /usr/local/bin/pixlet
+          pixlet version
+
+      - name: Create directories
+        run: |
+          mkdir -p output scripts
+
+      - name: Create WebP to packed RGB565 converter
+        run: |
+          cat > scripts/webp_to_anim_rgb565.py << 'EOF'
+          from PIL import Image, ImageSequence
+          import struct
+          import sys
+
+          input_file = sys.argv[1]
+          output_file = sys.argv[2]
+
+          WIDTH = 128
+          HEIGHT = 64
+          MAGIC = b'R565'
+          VERSION = 1
+          LOOP_COUNT = 0
+
+          def rgb888_to_rgb565(r, g, b):
+              return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+
+          img = Image.open(input_file)
+
+          frames = []
+          delays = []
+
+          for frame in ImageSequence.Iterator(img):
+              rgba = frame.convert("RGBA")
+              canvas = Image.new("RGBA", rgba.size, (0, 0, 0, 255))
+              composed = Image.alpha_composite(canvas, rgba).convert("RGB")
+
+              composed = composed.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+              delay = frame.info.get("duration", img.info.get("duration", 100))
+              if delay is None or delay <= 0:
+                  delay = 100
+
+              frames.append(composed)
+              delays.append(int(delay))
+
+          if not frames:
+              raise RuntimeError(f"No frames found in {input_file}")
+
+          with open(output_file, "wb") as f:
+              # File header:
+              # magic[4], version, width, height, frameCount, loopCount, reserved
+              f.write(struct.pack(
+                  "<4sHHHHHH",
+                  MAGIC,
+                  VERSION,
+                  WIDTH,
+                  HEIGHT,
+                  len(frames),
+                  LOOP_COUNT,
+                  0
+              ))
+
+              # Each frame:
+              # delayMs (uint16), reserved (uint16), RGB565 pixel data
+              for idx, frame in enumerate(frames):
+                  f.write(struct.pack("<HH", delays[idx], 0))
+                  pixels = frame.load()
+                  for y in range(HEIGHT):
+                      for x in range(WIDTH):
+                          r, g, b = pixels[x, y]
+                          rgb565 = rgb888_to_rgb565(r, g, b)
+                          f.write(struct.pack("<H", rgb565))
+
+          print(f"Packed {len(frames)} frame(s) into {output_file}")
+          EOF
+
+      - name: Clean old generated files
+        run: |
+          mkdir -p output
+          find output -type f \( -name "*.webp" -o -name "*.anim" \) -delete
+
+      - name: Render all .star files and convert them
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          files=(apps/*.star)
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .star files found in apps/"
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            name="$(basename "$file" .star)"
+            webp="output/${name}.webp"
+            anim="output/${name}.anim"
+
+            echo "Processing ${file}"
+            pixlet render "$file" -o "$webp"
+            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
+            echo "Generated ${webp} and ${anim}"
+          done
+
+      - name: Show generated files
+        run: |
+          echo "Generated files:"
+          find output -type f | sort
+
+      - name: Commit and push results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add output/*.webp output/*.anim
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Pixlet outputs [skip ci]"
+            git push
+          fi
