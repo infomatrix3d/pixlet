@@ -40,5 +40,21 @@ jobs:
       - name: Render .star files to .webp
         run: |
           pixlet render apps/fuzzy_clock.star -o output/fuzzy_clock.webp
+      
+      # Commits the fresh webp file back into your main branch
+             
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add output/fuzzy_clock.webp
+          
+          # Only commits if the image actually changed to prevent empty commit loops
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Automated update of fuzzy_clock.webp"
+            git push
+          fi
 
   
