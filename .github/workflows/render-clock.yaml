@@ -34,7 +34,7 @@ jobs:
 
       - name: Download App from Tronbyt Repo
         run: |
-          curl -fSLo apps/fuzzy_clock.star "https://githubusercontent.com"
+          curl -fSLo apps/fuzzy_clock.star "https://raw.githubusercontent.com/tronbyt/apps/refs/heads/main/apps/fuzzyclock/fuzzy_clock.star"
 
       # Compiles using the updated v0.53.0 binary
       - name: Render .star files to .webp
