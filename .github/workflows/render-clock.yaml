@@ -21,13 +21,12 @@ jobs:
           sudo apt-get install -y libwebp-dev webp
 
       - name: Install Pixlet
-        env:
-          PIXLET_VERSION: "0.34.0" 
         run: |
-          curl -LO "https://github.com{PIXLET_VERSION}/pixlet_${PIXLET_VERSION}_linux_amd64.tar.gz"
-          tar -xvf "pixlet_${PIXLET_VERSION}_linux_amd64.tar.gz"
+          curl -LO "https://github.com/tidbyt/pixlet/releases/download/v0.34.0/pixlet_0.34.0_linux_amd64.tar.gz"
+          tar -xvf "pixlet_0.34.0_linux_amd64.tar.gz"
           chmod +x ./pixlet
           sudo mv ./pixlet /usr/local/bin/pixlet
+
 
       # Creates a clean workspace directory for your assets
       - name: Create working directories
