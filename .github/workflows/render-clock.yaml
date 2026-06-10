@@ -1,0 +1,46 @@
+name: Render Tronbyt Apps
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 * * * *' # Updates your clock every hour automatically
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebp-dev webp
+
+      - name: Install Pixlet
+        env:
+          PIXLET_VERSION: "0.34.0" 
+        run: |
+          curl -LO "https://github.com{PIXLET_VERSION}/pixlet_${PIXLET_VERSION}_linux_amd64.tar.gz"
+          tar -xvf "pixlet_${PIXLET_VERSION}_linux_amd64.tar.gz"
+          chmod +x ./pixlet
+          sudo mv ./pixlet /usr/local/bin/pixlet
+
+      # Creates a clean workspace directory for your assets
+      - name: Create working directories
+        run: mkdir -p apps output
+
+      # Fetches the live file directly from the Tronbyt repository 
+      - name: Download App from Tronbyt Repo
+        run: |
+          curl -fSLo apps/fuzzy_clock.star "https://raw.githubusercontent.com/tronbyt/apps/refs/heads/main/apps/fuzzyclock/fuzzy_clock.star"
+
+      # Compiles the downloaded file using your locally installed Pixlet
+      - name: Render .star files to .webp
+        run: |
+          pixlet render apps/fuzzy_clock.star -o output/fuzzy_clock.webp
+
+ 
