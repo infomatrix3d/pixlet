@@ -127,7 +127,7 @@ jobs:
             anim="output/${name}.anim"
 
             echo "Processing ${file}"
-            pixlet render "$file" -o "$webp"
+            pixlet render -2 "$file" -o "$webp"
             python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
             echo "Generated ${webp} and ${anim}"
           done
