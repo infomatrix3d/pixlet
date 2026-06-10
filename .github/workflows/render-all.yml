@@ -28,13 +28,16 @@ env:
   #   1 = keep all frames
   #   2 = keep every 2nd frame
   #   3 = keep every 3rd frame
+
+
+
   FRAME_STEP: "1"
 
   # Maximum number of frames to keep in output
-  MAX_FRAMES: "15"
+  MAX_FRAMES: "60"
 
   # Minimum per-frame delay after reduction
-  MIN_DELAY_MS: "60"
+  MIN_DELAY_MS: "50"
 
 jobs:
   render_and_convert:
