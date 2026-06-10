@@ -13,7 +13,7 @@ load("time.star", "time")
 
 WIDTH, HEIGHT = canvas.size()
 IS_2X = canvas.is2x()
-SCALE = 2 if IS_2X else 1
+SCALE = 2 if IS_2X else 2
 
 TOP_ROW_HEIGHT = 8 * SCALE
 COMPACT_ROW_HEIGHT = 12 * SCALE
