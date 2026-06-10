@@ -28,7 +28,7 @@ env:
   #   1 = keep all frames
   #   2 = keep every 2nd frame
   #   3 = keep every 3rd frame
-  FRAME_STEP: "2"
+  FRAME_STEP: "1"
 
   # Maximum number of frames to keep in output
   MAX_FRAMES: "15"
