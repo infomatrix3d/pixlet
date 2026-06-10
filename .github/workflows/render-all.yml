@@ -7,6 +7,35 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+env:
+  # ------------------------------------------------------------------
+  # Rendering options
+  # ------------------------------------------------------------------
+  # Set to "true" to render all apps at 2x (128x64) using pixlet -2
+  # Set to "false" to render at normal size and let converter resize
+  USE_2X: "true"
+
+  # ------------------------------------------------------------------
+  # Output panel size
+  # ------------------------------------------------------------------
+  PANEL_WIDTH: "128"
+  PANEL_HEIGHT: "64"
+
+  # ------------------------------------------------------------------
+  # Animation reduction knobs
+  # ------------------------------------------------------------------
+  # Keep every Nth frame:
+  #   1 = keep all frames
+  #   2 = keep every 2nd frame
+  #   3 = keep every 3rd frame
+  FRAME_STEP: "2"
+
+  # Maximum number of frames to keep in output
+  MAX_FRAMES: "15"
+
+  # Minimum per-frame delay after reduction
+  MIN_DELAY_MS: "60"
+
 jobs:
   render_and_convert:
     if: github.actor != 'github-actions[bot]'
@@ -30,7 +59,7 @@ jobs:
           sudo mv ./pixlet /usr/local/bin/pixlet
           pixlet version
 
-      - name: Create directories
+      - name: Create working directories
         run: |
           mkdir -p output scripts
 
@@ -40,12 +69,18 @@ jobs:
           from PIL import Image, ImageSequence
           import struct
           import sys
+          import os
 
           input_file = sys.argv[1]
           output_file = sys.argv[2]
 
-          WIDTH = 128
-          HEIGHT = 64
+          WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
+          HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
+
+          FRAME_STEP = int(os.environ.get("FRAME_STEP", "2"))
+          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "15"))
+          MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "60"))
+
           MAGIC = b'R565'
           VERSION = 1
           LOOP_COUNT = 0
@@ -54,26 +89,41 @@ jobs:
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
           img = Image.open(input_file)
+          source_frames = list(ImageSequence.Iterator(img))
 
           frames = []
           delays = []
 
-          for frame in ImageSequence.Iterator(img):
+          for i, frame in enumerate(source_frames):
+              # Keep every Nth frame
+              if FRAME_STEP > 1 and (i % FRAME_STEP != 0):
+                  continue
+
               rgba = frame.convert("RGBA")
               canvas = Image.new("RGBA", rgba.size, (0, 0, 0, 255))
               composed = Image.alpha_composite(canvas, rgba).convert("RGB")
 
+              # Resize to target panel size
               composed = composed.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
               delay = frame.info.get("duration", img.info.get("duration", 100))
               if delay is None or delay <= 0:
                   delay = 100
 
+              # Compensate delay when skipping frames
+              delay = int(delay) * max(1, FRAME_STEP)
+
+              if delay < MIN_DELAY_MS:
+                  delay = MIN_DELAY_MS
+
               frames.append(composed)
-              delays.append(int(delay))
+              delays.append(delay)
+
+              if len(frames) >= MAX_FRAMES:
+                  break
 
           if not frames:
-              raise RuntimeError(f"No frames found in {input_file}")
+              raise RuntimeError(f"No usable frames found in {input_file}")
 
           with open(output_file, "wb") as f:
               # File header:
@@ -100,7 +150,16 @@ jobs:
                           rgb565 = rgb888_to_rgb565(r, g, b)
                           f.write(struct.pack("<H", rgb565))
 
-          print(f"Packed {len(frames)} frame(s) into {output_file}")
+          total_size = os.path.getsize(output_file)
+
+          print(f"Input file: {input_file}")
+          print(f"Source frame count: {len(source_frames)}")
+          print(f"Output frame count: {len(frames)}")
+          print(f"Frame step: {FRAME_STEP}")
+          print(f"Max frames: {MAX_FRAMES}")
+          print(f"Min delay: {MIN_DELAY_MS} ms")
+          print(f"Output size: {total_size} bytes")
+          print(f"Wrote: {output_file}")
           EOF
 
       - name: Clean old generated files
@@ -113,24 +172,41 @@ jobs:
         run: |
           set -euo pipefail
 
-          shopt -s nullglob
-          files=(apps/*.star)
+          found_any=false
 
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No .star files found in apps/"
+          while IFS= read -r file; do
+            found_any=true
+
+            rel="${file#apps/}"
+            stem="${rel%.star}"
+            safe_name="${stem//\//_}"
+
+            webp="output/${safe_name}.webp"
+            anim="output/${safe_name}.anim"
+
+            echo "--------------------------------------------------"
+            echo "Processing: ${file}"
+
+            if [ "${USE_2X}" = "true" ]; then
+              echo "Rendering in 2x mode"
+              pixlet render -2 "$file" -o "$webp"
+            else
+              echo "Rendering in normal mode"
+              pixlet render "$file" -o "$webp"
+            fi
+
+            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
+
+            echo "Generated:"
+            echo "  $webp"
+            echo "  $anim"
+
+          done < <(find apps -type f -name "*.star" | sort)
+
+          if [ "$found_any" = "false" ]; then
+            echo "No .star files found under apps/"
             exit 1
           fi
-
-          for file in "${files[@]}"; do
-            name="$(basename "$file" .star)"
-            webp="output/${name}.webp"
-            anim="output/${name}.anim"
-
-            echo "Processing ${file}"
-            pixlet render "$file" -o "$webp"
-            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
-            echo "Generated ${webp} and ${anim}"
-          done
 
       - name: Show generated files
         run: |
@@ -142,7 +218,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add output/*.webp output/*.anim
+          git add -A output
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
