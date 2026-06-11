@@ -8,16 +8,21 @@ on:
   workflow_dispatch:
 
 env:
-  # Render at 2x (128x64) directly from Pixlet
+  # Render apps at 2x (128x64) directly from Pixlet
   USE_2X: "true"
 
+  # Target panel size
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
 
-  # Animation reduction knobs
-  FRAME_STEP: "1"       # 1 = keep all frames
-  MAX_FRAMES: "60"      # cap output frame count
-  MIN_DELAY_MS: "50"    # minimum per-frame delay
+  # Maximum number of frames to keep in the final .anim
+  MAX_FRAMES: "60"
+
+  # Minimum frame delay in the generated .anim
+  MIN_DELAY_MS: "50"
+
+  # Base delay per extracted frame before auto-skip multiplication
+  BASE_DELAY_MS: "100"
 
 jobs:
   render_and_convert:
@@ -54,6 +59,8 @@ jobs:
           import sys
           import os
           import glob
+          import hashlib
+          import math
 
           frames_dir = sys.argv[1]
           output_file = sys.argv[2]
@@ -61,9 +68,9 @@ jobs:
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
 
-          FRAME_STEP = int(os.environ.get("FRAME_STEP", "1"))
           MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
+          BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
 
           MAGIC = b'R565'
           VERSION = 1
@@ -72,61 +79,69 @@ jobs:
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
-          def compute_signature_rgb(img):
-              pixels = img.load()
-              w, h = img.size
-              sample_cols = 8
-              sample_rows = 4
-              sig = 0x811C9DC5
-
-              for sy in range(sample_rows):
-                  y = (sy * (h - 1)) // (sample_rows - 1)
-                  for sx in range(sample_cols):
-                      x = (sx * (w - 1)) // (sample_cols - 1)
-                      r, g, b = pixels[x, y]
-                      px = rgb888_to_rgb565(r, g, b)
-                      sig ^= px
-                      sig = (sig * 16777619) & 0xFFFFFFFF
-                      sig ^= ((x << 16) ^ y) & 0xFFFFFFFF
-                      sig = (sig * 16777619) & 0xFFFFFFFF
-
-              return sig
+          def image_hash(img):
+              # Exact hash of resized RGB frame data
+              return hashlib.md5(img.tobytes()).hexdigest()
 
           frame_files = sorted(glob.glob(os.path.join(frames_dir, "frame_*.png")))
           if not frame_files:
               raise RuntimeError(f"No extracted PNG frames found in {frames_dir}")
 
-          print(f"Extracted PNG frame files: {len(frame_files)}")
+          total_frames = len(frame_files)
+
+          # Auto-calculate frame step:
+          # e.g. 120 total frames, MAX_FRAMES=60 -> frame_step=2
+          frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
+
+          print(f"Extracted PNG frame files: {total_frames}")
+          print(f"MAX_FRAMES: {MAX_FRAMES}")
+          print(f"Auto-calculated frame_step: {frame_step}")
 
           frames = []
           delays = []
 
-          # We use a fixed delay here because ImageMagick extraction alone does not carry
-          # per-frame timing into the filenames. If needed, this can be extended later.
-          fixed_delay = max(MIN_DELAY_MS, 100)
+          last_hash = None
+          deduped_count = 0
+          skipped_count = 0
 
-          output_idx = 0
           for i, frame_file in enumerate(frame_files):
-              if FRAME_STEP > 1 and (i % FRAME_STEP != 0):
+              if i % frame_step != 0:
+                  skipped_count += 1
                   continue
 
               img = Image.open(frame_file).convert("RGB")
               img = img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
-              sig = compute_signature_rgb(img)
-              print(f"Frame {i:03d} -> output idx {output_idx:03d}, sig=0x{sig:08X}")
+              h = image_hash(img)
+
+              # Stretch delay based on skipped frames
+              effective_delay = BASE_DELAY_MS * frame_step
+              if effective_delay < MIN_DELAY_MS:
+                  effective_delay = MIN_DELAY_MS
+
+              # Merge duplicate consecutive frames by extending delay
+              if last_hash is not None and h == last_hash:
+                  delays[-1] += effective_delay
+                  deduped_count += 1
+                  print(f"Frame {i:03d} -> duplicate of previous, merged, hash={h}")
+                  continue
+
+              print(f"Frame {i:03d} -> output idx {len(frames):03d}, hash={h}, delay={effective_delay}")
 
               frames.append(img)
-              delays.append(fixed_delay)
-              output_idx += 1
+              delays.append(effective_delay)
+              last_hash = h
 
               if len(frames) >= MAX_FRAMES:
+                  print(f"Reached MAX_FRAMES={MAX_FRAMES}, stopping")
                   break
 
           if not frames:
-              raise RuntimeError("No frames selected after frame reduction")
+              raise RuntimeError("No frames selected after auto-skip/dedupe")
 
           with open(output_file, "wb") as f:
+              # File header:
+              # magic[4], version, width, height, frameCount, loopCount, reserved
               f.write(struct.pack(
                   "<4sHHHHHH",
                   MAGIC,
@@ -138,6 +153,8 @@ jobs:
                   0
               ))
 
+              # Each frame:
+              # delayMs (uint16), reserved (uint16), RGB565 pixel data
               for idx, frame in enumerate(frames):
                   f.write(struct.pack("<HH", delays[idx], 0))
                   pixels = frame.load()
@@ -149,6 +166,8 @@ jobs:
 
           print(f"Wrote: {output_file}")
           print(f"Output frame count: {len(frames)}")
+          print(f"Skipped by frame_step: {skipped_count}")
+          print(f"Merged duplicate frames: {deduped_count}")
           print(f"Output size: {os.path.getsize(output_file)} bytes")
           EOF
 
