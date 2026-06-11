@@ -192,7 +192,11 @@ jobs:
             fi
 
             echo "Extracting/coalescing frames with ImageMagick"
-            magick "$webp" -coalesce "${frames_dir}/frame_%03d.png"
+            if command -v magick >/dev/null 2>&1; then
+              magick "$webp" -coalesce "${frames_dir}/frame_%03d.png"
+            else
+              convert "$webp" -coalesce "${frames_dir}/frame_%03d.png"
+            fi
 
             python3 scripts/png_frames_to_anim_rgb565.py "${frames_dir}" "$anim"
 
