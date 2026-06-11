@@ -8,36 +8,16 @@ on:
   workflow_dispatch:
 
 env:
-  # ------------------------------------------------------------------
-  # Rendering options
-  # ------------------------------------------------------------------
-  # Set to "true" to render all apps at 2x (128x64) using pixlet -2
-  # Set to "false" to render at normal size and let converter resize
+  # Render at 2x (128x64) directly from Pixlet
   USE_2X: "true"
 
-  # ------------------------------------------------------------------
-  # Output panel size
-  # ------------------------------------------------------------------
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
 
-  # ------------------------------------------------------------------
   # Animation reduction knobs
-  # ------------------------------------------------------------------
-  # Keep every Nth frame:
-  #   1 = keep all frames
-  #   2 = keep every 2nd frame
-  #   3 = keep every 3rd frame
-
-
-
-  FRAME_STEP: "1"
-
-  # Maximum number of frames to keep in output
-  MAX_FRAMES: "60"
-
-  # Minimum per-frame delay after reduction
-  MIN_DELAY_MS: "50"
+  FRAME_STEP: "1"       # 1 = keep all frames
+  MAX_FRAMES: "60"      # cap output frame count
+  MIN_DELAY_MS: "50"    # minimum per-frame delay
 
 jobs:
   render_and_convert:
@@ -51,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebp-dev webp python3 python3-pip curl
+          sudo apt-get install -y libwebp-dev webp imagemagick python3 python3-pip curl
           pip3 install pillow
 
       - name: Install Pixlet
@@ -64,25 +44,26 @@ jobs:
 
       - name: Create working directories
         run: |
-          mkdir -p output scripts
+          mkdir -p output scripts tmp_frames
 
-      - name: Create WebP to packed RGB565 converter
+      - name: Create PNG frames to packed RGB565 converter
         run: |
-          cat > scripts/webp_to_anim_rgb565.py << 'EOF'
-          from PIL import Image, ImageSequence
+          cat > scripts/png_frames_to_anim_rgb565.py << 'EOF'
+          from PIL import Image
           import struct
           import sys
           import os
+          import glob
 
-          input_file = sys.argv[1]
+          frames_dir = sys.argv[1]
           output_file = sys.argv[2]
 
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
 
-          FRAME_STEP = int(os.environ.get("FRAME_STEP", "2"))
-          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "15"))
-          MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "60"))
+          FRAME_STEP = int(os.environ.get("FRAME_STEP", "1"))
+          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
+          MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
 
           MAGIC = b'R565'
           VERSION = 1
@@ -91,46 +72,61 @@ jobs:
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
-          img = Image.open(input_file)
-          source_frames = list(ImageSequence.Iterator(img))
+          def compute_signature_rgb(img):
+              pixels = img.load()
+              w, h = img.size
+              sample_cols = 8
+              sample_rows = 4
+              sig = 0x811C9DC5
+
+              for sy in range(sample_rows):
+                  y = (sy * (h - 1)) // (sample_rows - 1)
+                  for sx in range(sample_cols):
+                      x = (sx * (w - 1)) // (sample_cols - 1)
+                      r, g, b = pixels[x, y]
+                      px = rgb888_to_rgb565(r, g, b)
+                      sig ^= px
+                      sig = (sig * 16777619) & 0xFFFFFFFF
+                      sig ^= ((x << 16) ^ y) & 0xFFFFFFFF
+                      sig = (sig * 16777619) & 0xFFFFFFFF
+
+              return sig
+
+          frame_files = sorted(glob.glob(os.path.join(frames_dir, "frame_*.png")))
+          if not frame_files:
+              raise RuntimeError(f"No extracted PNG frames found in {frames_dir}")
+
+          print(f"Extracted PNG frame files: {len(frame_files)}")
 
           frames = []
           delays = []
 
-          for i, frame in enumerate(source_frames):
-              # Keep every Nth frame
+          # We use a fixed delay here because ImageMagick extraction alone does not carry
+          # per-frame timing into the filenames. If needed, this can be extended later.
+          fixed_delay = max(MIN_DELAY_MS, 100)
+
+          output_idx = 0
+          for i, frame_file in enumerate(frame_files):
               if FRAME_STEP > 1 and (i % FRAME_STEP != 0):
                   continue
 
-              rgba = frame.convert("RGBA")
-              canvas = Image.new("RGBA", rgba.size, (0, 0, 0, 255))
-              composed = Image.alpha_composite(canvas, rgba).convert("RGB")
+              img = Image.open(frame_file).convert("RGB")
+              img = img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
-              # Resize to target panel size
-              composed = composed.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+              sig = compute_signature_rgb(img)
+              print(f"Frame {i:03d} -> output idx {output_idx:03d}, sig=0x{sig:08X}")
 
-              delay = frame.info.get("duration", img.info.get("duration", 100))
-              if delay is None or delay <= 0:
-                  delay = 100
-
-              # Compensate delay when skipping frames
-              delay = int(delay) * max(1, FRAME_STEP)
-
-              if delay < MIN_DELAY_MS:
-                  delay = MIN_DELAY_MS
-
-              frames.append(composed)
-              delays.append(delay)
+              frames.append(img)
+              delays.append(fixed_delay)
+              output_idx += 1
 
               if len(frames) >= MAX_FRAMES:
                   break
 
           if not frames:
-              raise RuntimeError(f"No usable frames found in {input_file}")
+              raise RuntimeError("No frames selected after frame reduction")
 
           with open(output_file, "wb") as f:
-              # File header:
-              # magic[4], version, width, height, frameCount, loopCount, reserved
               f.write(struct.pack(
                   "<4sHHHHHH",
                   MAGIC,
@@ -142,8 +138,6 @@ jobs:
                   0
               ))
 
-              # Each frame:
-              # delayMs (uint16), reserved (uint16), RGB565 pixel data
               for idx, frame in enumerate(frames):
                   f.write(struct.pack("<HH", delays[idx], 0))
                   pixels = frame.load()
@@ -153,22 +147,17 @@ jobs:
                           rgb565 = rgb888_to_rgb565(r, g, b)
                           f.write(struct.pack("<H", rgb565))
 
-          total_size = os.path.getsize(output_file)
-
-          print(f"Input file: {input_file}")
-          print(f"Source frame count: {len(source_frames)}")
-          print(f"Output frame count: {len(frames)}")
-          print(f"Frame step: {FRAME_STEP}")
-          print(f"Max frames: {MAX_FRAMES}")
-          print(f"Min delay: {MIN_DELAY_MS} ms")
-          print(f"Output size: {total_size} bytes")
           print(f"Wrote: {output_file}")
+          print(f"Output frame count: {len(frames)}")
+          print(f"Output size: {os.path.getsize(output_file)} bytes")
           EOF
 
       - name: Clean old generated files
         run: |
           mkdir -p output
           find output -type f \( -name "*.webp" -o -name "*.anim" \) -delete
+          rm -rf tmp_frames/*
+          mkdir -p tmp_frames
 
       - name: Render all .star files and convert them
         shell: bash
@@ -186,6 +175,10 @@ jobs:
 
             webp="output/${safe_name}.webp"
             anim="output/${safe_name}.anim"
+            frames_dir="tmp_frames/${safe_name}"
+
+            rm -rf "${frames_dir}"
+            mkdir -p "${frames_dir}"
 
             echo "--------------------------------------------------"
             echo "Processing: ${file}"
@@ -198,7 +191,10 @@ jobs:
               pixlet render "$file" -o "$webp"
             fi
 
-            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
+            echo "Extracting/coalescing frames with ImageMagick"
+            magick "$webp" -coalesce "${frames_dir}/frame_%03d.png"
+
+            python3 scripts/png_frames_to_anim_rgb565.py "${frames_dir}" "$anim"
 
             echo "Generated:"
             echo "  $webp"
