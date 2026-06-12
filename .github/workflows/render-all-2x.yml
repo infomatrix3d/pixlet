@@ -179,7 +179,11 @@ jobs:
       - name: Clean old generated files
         run: |
           mkdir -p output
-          find output -type f \( -name "*.webp" -o -name "*.anim" \) -delete
+          if [ "${USE_2X}" = "true" ]; then
+            find output -type f \( -name "*2x.webp" -o -name "*2x.anim" \) -delete
+          else
+            find output -type f \( -name "*.webp" -o -name "*.anim" \) -delete
+          fi
           rm -rf tmp_frames/*
           mkdir -p tmp_frames
 
