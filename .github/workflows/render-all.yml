@@ -12,14 +12,14 @@ env:
   TZ: "America/Toronto"  
   
   # Render apps at 2x (128x64) directly from Pixlet
-  USE_2X: "true"
+  USE_2X: "false"
 
   # Target panel size
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
 
   # Maximum number of frames to keep in the final .anim
-  MAX_FRAMES: "60"
+  MAX_FRAMES: "100"
 
   # Minimum frame delay in the generated .anim
   MIN_DELAY_MS: "50"
