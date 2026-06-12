@@ -54,7 +54,8 @@ jobs:
         run: |
           mkdir -p output scripts tmp_frames
 
-      - name: Create PNG frames to packed RGB565 converter
+      # Convert to .anim file for infomatrix - www.infomatrix3d.com
+      - name: Create PNG frames to INFOMATRIX3D
         run: |
           cat > scripts/png_frames_to_anim_rgb565.py << 'EOF'
           from PIL import Image
