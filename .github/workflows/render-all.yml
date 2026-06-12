@@ -15,8 +15,8 @@ env:
   USE_2X: "false"
 
   # Target panel size
-  PANEL_WIDTH: "128"
-  PANEL_HEIGHT: "64"
+  PANEL_WIDTH: "64"
+  PANEL_HEIGHT: "32"
 
   # Maximum number of frames to keep in the final .anim
   MAX_FRAMES: "100"
