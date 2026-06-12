@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
 
 env:
+  #Timezone
+  TZ: "America/Toronto"  
+  
   # Render apps at 2x (128x64) directly from Pixlet
   USE_2X: "true"
 
