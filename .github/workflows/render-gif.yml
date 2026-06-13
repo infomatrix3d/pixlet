@@ -1,4 +1,4 @@
-name: Build Latest Pixlet and Render GIFs
+name: Render and Convert All Pixlet Apps
 
 on:
   push:
@@ -8,65 +8,40 @@ on:
 env:
   TZ: "America/Toronto"
   USE_2X: "true"
+  # Note: Python-specific env vars (PANEL_WIDTH, MAX_FRAMES, etc.) have been removed.
 
 permissions:
   contents: write
 
 jobs:
-  render_gifs:
+  render_and_convert:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout your repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install dependencies
+        # Removed Python and Pillow as they are no longer needed
         run: |
           sudo apt-get update
-          sudo apt-get install -y make curl git libwebp-dev nodejs npm golang
+          sudo apt-get install -y curl
 
-      - name: Clone latest Tronbyt Pixlet
+      - name: Install Pixlet
         run: |
-          git clone --depth 1 https://github.com/Tronbyt/pixlet.git tronbyt-pixlet
-          cd tronbyt-pixlet
-          git log -1 --oneline
+          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
+          tar -xvf "pixlet_v0.53.0_linux-amd64.tar.gz"
+          chmod +x ./pixlet
+          sudo mv ./pixlet /usr/local/bin/pixlet
+          pixlet version
 
-      - name: Build latest Pixlet from source
+      - name: Create working directories
+        # Removed scripts directory since the Python script is gone
         run: |
-          set -euo pipefail
-          cd tronbyt-pixlet
-          npm --prefix=frontend install
-          npm --prefix=frontend run build
-          make build
-          ./pixlet version || true
+          mkdir -p output
 
-      - name: Show Pixlet help
-        run: |
-          cd tronbyt-pixlet
-          echo "=== pixlet render --help ==="
-          ./pixlet render --help || true
-          echo
-          echo "=== pixlet serve --help ==="
-          ./pixlet serve --help || true
-
-      - name: Detect GIF render capability
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd tronbyt-pixlet
-
-          if ./pixlet render --help 2>&1 | grep -q -- '--gif'; then
-            echo "PIXLET_RENDER_GIF_FLAG=true" >> "$GITHUB_ENV"
-            echo "Detected: pixlet render supports --gif"
-          else
-            echo "PIXLET_RENDER_GIF_FLAG=false" >> "$GITHUB_ENV"
-            echo "Detected: pixlet render does NOT expose --gif; workflow will still try .gif output and validate the header"
-          fi
-
-      - name: Create output directory
-        run: mkdir -p output
-
-      - name: Clean old generated GIFs
+      - name: Clean old generated files
+        # Updated to clean up .gif files instead of .webp/.anim
         run: |
           mkdir -p output
           if [ "${USE_2X}" = "true" ]; then
@@ -81,42 +56,21 @@ jobs:
           set -euo pipefail
           found_any=false
 
-          PIXLET_BIN="$GITHUB_WORKSPACE/tronbyt-pixlet/pixlet"
-
           while IFS= read -r file; do
             found_any=true
-
             rel="${file#apps/}"
             stem="${rel%.star}"
             safe_name="${stem//\//_}"
 
+            # Pixlet automatically outputs a GIF if the extension is .gif
             if [ "${USE_2X}" = "true" ]; then
               gif="output/${safe_name}2x.gif"
-              if [ "${PIXLET_RENDER_GIF_FLAG}" = "true" ]; then
-                "$PIXLET_BIN" render --gif -2 "$file" -o "$gif"
-              else
-                "$PIXLET_BIN" render -2 "$file" -o "$gif"
-              fi
+              pixlet render -2 "$file" -o "$gif"
             else
               gif="output/${safe_name}.gif"
-              if [ "${PIXLET_RENDER_GIF_FLAG}" = "true" ]; then
-                "$PIXLET_BIN" render --gif "$file" -o "$gif"
-              else
-                "$PIXLET_BIN" render "$file" -o "$gif"
-              fi
+              pixlet render "$file" -o "$gif"
             fi
 
-            echo "Rendered: $gif"
-
-            header="$(head -c 6 "$gif" || true)"
-            echo "$gif -> header: $header"
-
-            if [ "$header" != "GIF87a" ] && [ "$header" != "GIF89a" ]; then
-              echo "ERROR: $gif is not a real GIF file"
-              echo "This Pixlet build did not emit GIF bytes for this command path."
-              echo "Check the help output above and update the render invocation accordingly."
-              exit 1
-            fi
           done < <(find apps -type f -name "*.star" | sort)
 
           if [ "$found_any" = "false" ]; then
@@ -128,7 +82,7 @@ jobs:
         run: |
           find output -type f | sort
 
-      - name: Commit and push generated GIFs
+      - name: Commit and push results
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -136,7 +90,7 @@ jobs:
           git add -A output
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet GIF renders [skip ci]"
+            git commit -m "Update Pixlet renders to GIF [skip ci]"
             git push origin main
           else
             echo "No rendering changes detected."
