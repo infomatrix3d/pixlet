@@ -11,9 +11,9 @@ env:
   USE_2X: "true"
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
-  MAX_FRAMES: "60"
   MIN_DELAY_MS: "50"
-  BASE_DELAY_MS: "1000"
+  BASE_DELAY_MS: "100"
+  DEBUG_TIMING: "true"
 
 permissions:
   contents: write
@@ -44,110 +44,129 @@ jobs:
         run: |
           mkdir -p output scripts
 
-      - name: Create WebP to INFOMATRIX3D converter
+      - name: Create WebP to INFOMATRIX3D converter with debug logging
         run: |
           cat > scripts/webp_to_anim_rgb565.py << 'EOF'
           from PIL import Image
           import struct
           import sys
           import os
-          import hashlib
-          import math
-          
+
           input_webp = sys.argv[1]
           output_file = sys.argv[2]
-          
+
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
-          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
           BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
-          
+          DEBUG_TIMING = os.environ.get("DEBUG_TIMING", "true").lower() == "true"
+
           MAGIC = b'R565'
           VERSION = 1
           LOOP_COUNT = 0
-          
+
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-          
-          def image_hash(img):
-              return hashlib.md5(img.tobytes()).hexdigest()
-          
-          def get_frame_duration_ms(im):
-              duration = im.info.get("duration", 0)
-              if not duration or duration <= 0:
-                  duration = BASE_DELAY_MS
-              return max(duration, MIN_DELAY_MS)
-          
+
+          def get_frame_delay_ms(im):
+              # Raw delay reported by Pillow from animated WebP metadata
+              raw_duration = im.info.get("duration", 0)
+
+              # Fallback if duration is missing or zero
+              if raw_duration is None or raw_duration <= 0:
+                  effective_duration = BASE_DELAY_MS
+                  used_fallback = True
+              else:
+                  effective_duration = int(raw_duration)
+                  used_fallback = False
+
+              # Enforce minimum delay
+              clamped_duration = max(effective_duration, MIN_DELAY_MS)
+
+              return raw_duration, effective_duration, clamped_duration, used_fallback
+
           im = Image.open(input_webp)
-          
+
+          frames = []
+          delays = []
+
+          if DEBUG_TIMING:
+              print("=== WEBP DEBUG START ===")
+              print(f"Input file: {input_webp}")
+              print(f"Output file: {output_file}")
+              print(f"Target size: {WIDTH}x{HEIGHT}")
+              print(f"MIN_DELAY_MS={MIN_DELAY_MS}")
+              print(f"BASE_DELAY_MS={BASE_DELAY_MS}")
+              print(f"is_animated={getattr(im, 'is_animated', False)}")
+              print(f"format={getattr(im, 'format', None)}")
+
           if not getattr(im, "is_animated", False):
               frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-              frames = [frame]
-              delays = [max(BASE_DELAY_MS, MIN_DELAY_MS)]
+              frames.append(frame.copy())
+              delays.append(max(BASE_DELAY_MS, MIN_DELAY_MS))
+
+              if DEBUG_TIMING:
+                  print("Input is not animated; writing single frame.")
+                  print(f"Output delays: {delays}")
           else:
-              total_frames = im.n_frames
-          
-              # If source already fits, keep all frames
-              if total_frames <= MAX_FRAMES:
-                  keep_indices = list(range(total_frames))
-              else:
-                  # Evenly distribute kept frames across the whole animation,
-                  # including the last source frame.
-                  keep_indices = sorted(set(
-                      round(i * (total_frames - 1) / (MAX_FRAMES - 1))
-                      for i in range(MAX_FRAMES)
-                  ))
-          
-              selected_frames = []
-              selected_delays = []
-          
-              pending_delay = 0
-              last_hash = None
-              keep_set = set(keep_indices)
-          
-              for i in range(total_frames):
+              if DEBUG_TIMING:
+                  print(f"Animated WebP frame count: {im.n_frames}")
+
+              total_raw = 0
+              total_effective = 0
+              total_written = 0
+
+              for i in range(im.n_frames):
                   im.seek(i)
-          
-                  duration_ms = get_frame_duration_ms(im)
-                  pending_delay += duration_ms
-          
-                  if i not in keep_set:
-                      continue
-          
+
+                  raw_duration, effective_duration, clamped_duration, used_fallback = get_frame_delay_ms(im)
+
                   frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-                  h = image_hash(frame)
-          
-                  if last_hash is not None and h == last_hash:
-                      selected_delays[-1] += pending_delay
-                  else:
-                      selected_frames.append(frame.copy())
-                      selected_delays.append(pending_delay)
-                      last_hash = h
-          
-                  pending_delay = 0
-          
-              # Any unassigned tail delay gets added to the final kept frame
-              if pending_delay > 0 and selected_delays:
-                  selected_delays[-1] += pending_delay
-          
-              frames = selected_frames
-              delays = selected_delays
-          
+                  frames.append(frame.copy())
+                  delays.append(clamped_duration)
+
+                  total_raw += int(raw_duration or 0)
+                  total_effective += int(effective_duration)
+                  total_written += int(clamped_duration)
+
+                  if DEBUG_TIMING:
+                      print(
+                          f"Frame {i}: "
+                          f"raw_duration={raw_duration} ms, "
+                          f"effective_duration={effective_duration} ms, "
+                          f"written_duration={clamped_duration} ms, "
+                          f"used_fallback={used_fallback}"
+                      )
+
+              if DEBUG_TIMING:
+                  print(f"Total raw duration from metadata: {total_raw} ms")
+                  print(f"Total effective duration before MIN clamp: {total_effective} ms")
+                  print(f"Total written duration after MIN clamp: {total_written} ms")
+                  print(f"Final delays written: {delays}")
+
           if not frames:
-              raise RuntimeError("No frames selected")
-          
+              raise RuntimeError("No frames found in input WebP")
+
           with open(output_file, "wb") as f:
+              # Header
               f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
-          
+
+              # Frame records
               for idx, frame in enumerate(frames):
-                  f.write(struct.pack("<HH", int(delays[idx]), 0))
+                  delay = int(delays[idx])
+
+                  # Frame metadata: delay + reserved
+                  f.write(struct.pack("<HH", delay, 0))
+
                   pixels = frame.load()
-          
                   for y in range(HEIGHT):
                       for x in range(WIDTH):
                           r, g, b = pixels[x, y]
                           f.write(struct.pack("<H", rgb888_to_rgb565(r, g, b)))
+
+          if DEBUG_TIMING:
+              print(f"Wrote {len(frames)} frame(s) to {output_file}")
+              print("=== WEBP DEBUG END ===")
           EOF
 
       - name: Clean old generated files
@@ -180,6 +199,12 @@ jobs:
               anim="output/${safe_name}.anim"
               pixlet render "$file" -o "$webp"
             fi
+
+            echo "========================================"
+            echo "Rendering: $file"
+            echo "Generated WebP: $webp"
+            echo "Output ANIM:    $anim"
+            echo "========================================"
 
             python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
           done < <(find apps -type f -name "*.star" | sort)
