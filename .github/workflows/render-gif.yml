@@ -68,7 +68,6 @@ jobs:
             fi
 
             # Use ImageMagick to convert the animated WebP into a true GIF
-            # -coalesce ensures the frames overlay correctly without artifacting
             convert "$webp" -coalesce "$gif"
             
             # Delete the WebP so we only commit the GIF
@@ -80,6 +79,30 @@ jobs:
             echo "No .star files found under apps/"
             exit 1
           fi
+
+      - name: Create GIF Catalog (README.md)
+        shell: bash
+        run: |
+          # Create the header of the Markdown table
+          cat << 'EOF' > output/README.md
+          # 📺 Pixlet App Catalog
+
+          Here is a live preview of all currently generated GIFs available for your ESP32 display:
+
+          | App Name | GIF Preview |
+          | :--- | :--- |
+          EOF
+
+          # Loop through every generated GIF and add a row to the table
+          for gif in output/*.gif; do
+            if [ -f "$gif" ]; then
+              filename=$(basename "$gif")
+              appname="${filename%.gif}"
+              
+              # Appends a row with the app name and the embedded image
+              echo "| \`$appname\` | ![$appname]($filename) |" >> output/README.md
+            fi
+          done
 
       - name: Show generated files
         run: |
@@ -93,7 +116,7 @@ jobs:
           git add -A output
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet renders to GIF [skip ci]"
+            git commit -m "Update Pixlet renders and generate Catalog [skip ci]"
             
             # Pull any recent changes to avoid a rejected push
             git pull --rebase origin main
