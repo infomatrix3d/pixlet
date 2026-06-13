@@ -23,8 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          # Adding ffmpeg here just to guarantee it is available
-          sudo apt-get install -y curl ffmpeg
+          sudo apt-get install -y curl imagemagick
 
       - name: Install Pixlet
         run: |
@@ -40,11 +39,10 @@ jobs:
 
       - name: Clean old generated files
         run: |
-          mkdir -p output
           if [ "${USE_2X}" = "true" ]; then
-            find output -type f -name "*2x.gif" -delete
+            find output -type f -name "*2x.gif" -delete || true
           else
-            find output -type f -name "*.gif" -delete
+            find output -type f -name "*.gif" -delete || true
           fi
 
       - name: Render to WebP and Convert to GIF
@@ -69,11 +67,9 @@ jobs:
               pixlet render "$file" -o "$webp"
             fi
 
-            # Use FFmpeg to convert the animated WebP into a true GIF
-            # -v warning: Hides terminal spam
-            # -vf split...: Generates a custom color palette so the GIF looks perfect
-            # -loop 0: Ensures the animation loops infinitely
-            ffmpeg -v warning -i "$webp" -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 "$gif" -y
+            # Use ImageMagick to convert the animated WebP into a true GIF
+            # -coalesce ensures the frames overlay correctly without artifacting
+            convert "$webp" -coalesce "$gif"
             
             # Delete the WebP so we only commit the GIF
             rm "$webp"
