@@ -93,12 +93,12 @@ jobs:
           git add -A output
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet renders [skip ci]"
+            git commit -m "Update Pixlet renders to GIF [skip ci]"
+            
+            # Pull any recent changes to avoid a rejected push
+            git pull --rebase origin main
+            
             git push origin main
           else
-            echo "No rendering changes detected."
-          fi
-            echo "No rendering changes detected."
-          fi
             echo "No rendering changes detected."
           fi
