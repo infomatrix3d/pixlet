@@ -7,7 +7,7 @@ on:
 
 env:
   TZ: "America/Toronto"
-  USE_2X: "true"
+  USE_2X: "false"
   # Note: Python-specific env vars (PANEL_WIDTH, MAX_FRAMES, etc.) have been removed.
 
 permissions:
