@@ -51,74 +51,105 @@ jobs:
           import struct
           import sys
           import os
-          import glob
           import hashlib
           import math
-
-          frames_dir = sys.argv[1]
+          
+          input_webp = sys.argv[1]
           output_file = sys.argv[2]
-
+          
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
           MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
           BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
-
+          
           MAGIC = b'R565'
           VERSION = 1
           LOOP_COUNT = 0
-
+          
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-
+          
           def image_hash(img):
               return hashlib.md5(img.tobytes()).hexdigest()
-
-          frame_files = sorted(glob.glob(os.path.join(frames_dir, "frame_*.png")))
-          if not frame_files:
-              raise RuntimeError(f"No extracted PNG frames found in {frames_dir}")
-
-          total_frames = len(frame_files)
-          frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
-
-          frames = []
-          delays = []
-          last_hash = None
-
-          for i, frame_file in enumerate(frame_files):
-              if i % frame_step != 0:
-                  continue
-
-              img = Image.open(frame_file).convert("RGB")
-              img = img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-              h = image_hash(img)
-              effective_delay = BASE_DELAY_MS * frame_step
-              if effective_delay < MIN_DELAY_MS:
-                  effective_delay = MIN_DELAY_MS
-
-              if last_hash is not None and h == last_hash:
-                  delays[-1] += effective_delay
-                  continue
-
-              frames.append(img)
-              delays.append(effective_delay)
-              last_hash = h
-
-              if len(frames) >= MAX_FRAMES:
-                  break
-
+          
+          def get_frame_duration_ms(im):
+              # PIL exposes frame duration in milliseconds for animated images
+              duration = im.info.get("duration", 0)
+          
+              # Some frames may report 0 or missing duration; use a fallback
+              if not duration or duration <= 0:
+                  duration = BASE_DELAY_MS
+          
+              # Enforce minimum delay
+              return max(duration, MIN_DELAY_MS)
+          
+          # Open animated WebP
+          im = Image.open(input_webp)
+          
+          if not getattr(im, "is_animated", False):
+              # Non-animated fallback
+              frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+              frames = [frame]
+              delays = [max(BASE_DELAY_MS, MIN_DELAY_MS)]
+          else:
+              total_frames = im.n_frames
+              frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
+          
+              selected_frames = []
+              selected_delays = []
+          
+              pending_delay = 0
+              last_hash = None
+          
+              for i in range(total_frames):
+                  im.seek(i)
+          
+                  duration_ms = get_frame_duration_ms(im)
+                  pending_delay += duration_ms
+          
+                  # Only keep one frame per sampling bucket, but preserve total timing
+                  if i % frame_step != 0:
+                      continue
+          
+                  frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+                  h = image_hash(frame)
+          
+                  # If visually identical to previous kept frame, merge timing
+                  if last_hash is not None and h == last_hash:
+                      selected_delays[-1] += pending_delay
+                  else:
+                      selected_frames.append(frame.copy())
+                      selected_delays.append(pending_delay)
+                      last_hash = h
+          
+                  pending_delay = 0
+          
+                  if len(selected_frames) >= MAX_FRAMES:
+                      break
+          
+              # If there is leftover delay from skipped tail frames, add it to the last frame
+              if pending_delay > 0 and selected_delays:
+                  selected_delays[-1] += pending_delay
+          
+              frames = selected_frames
+              delays = selected_delays
+          
           if not frames:
               raise RuntimeError("No frames selected")
-
+          
           with open(output_file, "wb") as f:
               f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
+          
               for idx, frame in enumerate(frames):
-                  f.write(struct.pack("<HH", delays[idx], 0))
+                  f.write(struct.pack("<HH", int(delays[idx]), 0))
                   pixels = frame.load()
+          
                   for y in range(HEIGHT):
                       for x in range(WIDTH):
                           r, g, b = pixels[x, y]
                           f.write(struct.pack("<H", rgb888_to_rgb565(r, g, b)))
+
           EOF
 
       - name: Clean old generated files
