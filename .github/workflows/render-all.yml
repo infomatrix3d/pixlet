@@ -53,88 +53,97 @@ jobs:
           import os
           import hashlib
           import math
-
+          
           input_webp = sys.argv[1]
           output_file = sys.argv[2]
-
+          
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
           MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
           BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
-
+          
           MAGIC = b'R565'
           VERSION = 1
           LOOP_COUNT = 0
-
+          
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-
+          
           def image_hash(img):
               return hashlib.md5(img.tobytes()).hexdigest()
-
+          
           def get_frame_duration_ms(im):
               duration = im.info.get("duration", 0)
               if not duration or duration <= 0:
                   duration = BASE_DELAY_MS
               return max(duration, MIN_DELAY_MS)
-
+          
           im = Image.open(input_webp)
-
+          
           if not getattr(im, "is_animated", False):
               frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
               frames = [frame]
               delays = [max(BASE_DELAY_MS, MIN_DELAY_MS)]
           else:
               total_frames = im.n_frames
-              frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
-
+          
+              # If source already fits, keep all frames
+              if total_frames <= MAX_FRAMES:
+                  keep_indices = list(range(total_frames))
+              else:
+                  # Evenly distribute kept frames across the whole animation,
+                  # including the last source frame.
+                  keep_indices = sorted(set(
+                      round(i * (total_frames - 1) / (MAX_FRAMES - 1))
+                      for i in range(MAX_FRAMES)
+                  ))
+          
               selected_frames = []
               selected_delays = []
-
+          
               pending_delay = 0
               last_hash = None
-
+              keep_set = set(keep_indices)
+          
               for i in range(total_frames):
                   im.seek(i)
-
+          
                   duration_ms = get_frame_duration_ms(im)
                   pending_delay += duration_ms
-
-                  if i % frame_step != 0:
+          
+                  if i not in keep_set:
                       continue
-
+          
                   frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
                   h = image_hash(frame)
-
+          
                   if last_hash is not None and h == last_hash:
                       selected_delays[-1] += pending_delay
                   else:
                       selected_frames.append(frame.copy())
                       selected_delays.append(pending_delay)
                       last_hash = h
-
+          
                   pending_delay = 0
-
-                  if len(selected_frames) >= MAX_FRAMES:
-                      break
-
+          
+              # Any unassigned tail delay gets added to the final kept frame
               if pending_delay > 0 and selected_delays:
                   selected_delays[-1] += pending_delay
-
+          
               frames = selected_frames
               delays = selected_delays
-
+          
           if not frames:
               raise RuntimeError("No frames selected")
-
+          
           with open(output_file, "wb") as f:
               f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
-
+          
               for idx, frame in enumerate(frames):
                   f.write(struct.pack("<HH", int(delays[idx]), 0))
                   pixels = frame.load()
-
+          
                   for y in range(HEIGHT):
                       for x in range(WIDTH):
                           r, g, b = pixels[x, y]
