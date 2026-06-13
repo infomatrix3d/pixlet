@@ -1,0 +1,127 @@
+name: Render and Convert All Pixlet Apps
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  TZ: "America/Toronto"
+  USE_2X: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  render_and_convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl imagemagick
+
+      - name: Install Pixlet
+        run: |
+          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
+          tar -xvf "pixlet_v0.53.0_linux-amd64.tar.gz"
+          chmod +x ./pixlet
+          sudo mv ./pixlet /usr/local/bin/pixlet
+          pixlet version
+
+      - name: Create working directories
+        run: |
+          mkdir -p output
+
+      - name: Clean old generated files
+        run: |
+          if [ "${USE_2X}" = "true" ]; then
+            find output -type f -name "*2x.gif" -delete || true
+          else
+            find output -type f -name "*.gif" -delete || true
+          fi
+
+      - name: Render to WebP and Convert to GIF
+        shell: bash
+        run: |
+          set -euo pipefail
+          found_any=false
+
+          while IFS= read -r file; do
+            found_any=true
+            rel="${file#apps/}"
+            stem="${rel%.star}"
+            safe_name="${stem//\//_}"
+
+            if [ "${USE_2X}" = "true" ]; then
+              webp="output/${safe_name}2x.webp"
+              gif="output/${safe_name}2x.gif"
+              pixlet render -2 "$file" -o "$webp"
+            else
+              webp="output/${safe_name}.webp"
+              gif="output/${safe_name}.gif"
+              pixlet render "$file" -o "$webp"
+            fi
+
+            # Use ImageMagick to convert the animated WebP into a true GIF
+            convert "$webp" -coalesce "$gif"
+            
+            # Delete the WebP so we only commit the GIF
+            rm "$webp"
+
+          done < <(find apps -type f -name "*.star" | sort)
+
+          if [ "$found_any" = "false" ]; then
+            echo "No .star files found under apps/"
+            exit 1
+          fi
+
+      - name: Create GIF Catalog (README.md)
+        shell: bash
+        run: |
+          # Create the header of the Markdown table
+          cat << 'EOF' > output/README.md
+          # 📺 Pixlet App Catalog
+
+          Here is a live preview of all currently generated GIFs available for your ESP32 display:
+
+          | App Name | GIF Preview |
+          | :--- | :--- |
+          EOF
+
+          # Loop through every generated GIF and add a row to the table
+          for gif in output/*.gif; do
+            if [ -f "$gif" ]; then
+              filename=$(basename "$gif")
+              appname="${filename%.gif}"
+              
+              # Appends a row with the app name and the embedded image
+              echo "| \`$appname\` | ![$appname]($filename) |" >> output/README.md
+            fi
+          done
+
+      - name: Show generated files
+        run: |
+          find output -type f | sort
+
+      - name: Commit and push results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A output
+
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Pixlet renders and generate Catalog [skip ci]"
+            
+            # Pull any recent changes to avoid a rejected push
+            git pull --rebase origin main
+            
+            git push origin main
+          else
+            echo "No rendering changes detected."
+          fi
