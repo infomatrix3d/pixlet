@@ -11,6 +11,7 @@ env:
   USE_2X: "true"
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
+  MAX_FRAMES: "60"
   MIN_DELAY_MS: "50"
   BASE_DELAY_MS: "100"
 
@@ -50,12 +51,15 @@ jobs:
           import struct
           import sys
           import os
+          import math
+          import hashlib
 
           input_webp = sys.argv[1]
           output_file = sys.argv[2]
 
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
+          MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
           BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
 
@@ -65,6 +69,9 @@ jobs:
 
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+
+          def image_hash(img):
+              return hashlib.md5(img.tobytes()).hexdigest()
 
           def get_frame_delay_info(im):
               raw_duration = im.info.get("duration", 0)
@@ -84,26 +91,24 @@ jobs:
 
           im = Image.open(input_webp)
 
-          frames = []
+          raw_frames = []
           delay_info = []
 
           if not getattr(im, "is_animated", False):
               frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-              info = {
+              raw_frames.append(frame.copy())
+              delay_info.append({
                   "raw": None,
                   "effective": BASE_DELAY_MS,
                   "written": max(BASE_DELAY_MS, MIN_DELAY_MS),
-              }
-
-              frames.append(frame.copy())
-              delay_info.append(info)
+              })
           else:
               for i in range(im.n_frames):
                   im.seek(i)
                   info = get_frame_delay_info(im)
                   frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
-                  frames.append(frame.copy())
+                  raw_frames.append(frame.copy())
                   delay_info.append(info)
 
               # General first-frame normalization rule:
@@ -119,18 +124,48 @@ jobs:
                               later_explicit.append(int(raw))
 
                       if later_explicit:
-                          if all(x == later_explicit[0] for x in later_explicit):
-                              inferred_delay = later_explicit[0]
-                          else:
-                              inferred_delay = later_explicit[0]
-
+                          inferred_delay = later_explicit[0]
                           delay_info[0]["effective"] = inferred_delay
                           delay_info[0]["written"] = max(inferred_delay, MIN_DELAY_MS)
 
-          if not frames:
+          if not raw_frames:
               raise RuntimeError("No frames found in input WebP")
 
-          delays = [d["written"] for d in delay_info]
+          raw_delays = [d["written"] for d in delay_info]
+          total_frames = len(raw_frames)
+
+          # Original frame reduction logic
+          frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
+
+          frames = []
+          delays = []
+          last_hash = None
+          pending_delay = 0
+
+          for i in range(total_frames):
+              pending_delay += raw_delays[i]
+
+              if i % frame_step != 0:
+                  continue
+
+              frame = raw_frames[i]
+              h = image_hash(frame)
+
+              if last_hash is not None and h == last_hash:
+                  delays[-1] += pending_delay
+              else:
+                  frames.append(frame.copy())
+                  delays.append(pending_delay)
+                  last_hash = h
+
+              pending_delay = 0
+
+          # Preserve any remaining tail delay
+          if pending_delay > 0 and delays:
+              delays[-1] += pending_delay
+
+          if not frames:
+              raise RuntimeError("No frames selected")
 
           with open(output_file, "wb") as f:
               f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
