@@ -1,9 +1,8 @@
-name: Render All Pixlet Apps as GIF
+name: Render Pixlet Apps as Real GIF
 
 on:
   push:
     branches: [ main ]
-
   workflow_dispatch:
 
 env:
@@ -35,8 +34,7 @@ jobs:
           pixlet version
 
       - name: Create output directory
-        run: |
-          mkdir -p output
+        run: mkdir -p output
 
       - name: Clean old generated GIFs
         run: |
@@ -55,23 +53,47 @@ jobs:
 
           while IFS= read -r file; do
             found_any=true
+
             rel="${file#apps/}"
             stem="${rel%.star}"
             safe_name="${stem//\//_}"
 
             if [ "${USE_2X}" = "true" ]; then
               gif="output/${safe_name}2x.gif"
-              pixlet render -2 "$file" -o "$gif"
+              pixlet render --gif -2 "$file" -o "$gif"
             else
               gif="output/${safe_name}.gif"
-              pixlet render "$file" -o "$gif"
+              pixlet render --gif "$file" -o "$gif"
             fi
+
+            echo "Rendered: $gif"
           done < <(find apps -type f -name "*.star" | sort)
 
           if [ "$found_any" = "false" ]; then
             echo "No .star files found under apps/"
             exit 1
           fi
+
+      - name: Validate generated files are real GIFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          files=(output/*.gif)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No GIF files were generated."
+            exit 1
+          fi
+
+          for f in "${files[@]}"; do
+            header="$(head -c 6 "$f" || true)"
+            echo "$f -> header: $header"
+            if [ "$header" != "GIF87a" ] && [ "$header" != "GIF89a" ]; then
+              echo "ERROR: $f is not a real GIF file"
+              exit 1
+            fi
+          done
 
       - name: Show generated files
         run: |
@@ -90,4 +112,3 @@ jobs:
           else
             echo "No rendering changes detected."
           fi
-
