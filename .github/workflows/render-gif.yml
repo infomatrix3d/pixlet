@@ -68,6 +68,7 @@ jobs:
             fi
 
             # Use ImageMagick to convert the animated WebP into a true GIF
+            # -coalesce ensures the frames overlay correctly without artifacting
             convert "$webp" -coalesce "$gif"
             
             # Delete the WebP so we only commit the GIF
@@ -80,30 +81,6 @@ jobs:
             exit 1
           fi
 
-      - name: Create GIF Catalog (README.md)
-        shell: bash
-        run: |
-          # Create the header of the Markdown table
-          cat << 'EOF' > output/README.md
-          # 📺 Pixlet App Catalog
-
-          Here is a live preview of all currently generated GIFs available for your ESP32 display:
-
-          | App Name | GIF Preview |
-          | :--- | :--- |
-          EOF
-
-          # Loop through every generated GIF and add a row to the table
-          for gif in output/*.gif; do
-            if [ -f "$gif" ]; then
-              filename=$(basename "$gif")
-              appname="${filename%.gif}"
-              
-              # Appends a row with the app name and the embedded image
-              echo "| \`$appname\` | ![$appname]($filename) |" >> output/README.md
-            fi
-          done
-
       - name: Show generated files
         run: |
           find output -type f | sort
@@ -113,25 +90,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 1. Fetch the latest changes from GitHub without merging yet
-          git fetch origin main
-
-          # 2. Stage all the newly generated GIFs and the README catalog
           git add -A output
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet renders and generate Catalog [skip ci]"
+            git commit -m "Update Pixlet renders to GIF [skip ci]"
             
-            # 3. Pull using the "ours" strategy option (-X ours). 
-            # If a conflict occurs over modified/deleted webp files, Git automatically 
-            # accepts our deletion and ignores the remote changes.
-            git pull -X ours --no-rebase origin main
+            # Pull any recent changes to avoid a rejected push
+            git pull --rebase origin main
             
-            # 4. Push the clean, conflict-free result back to the repository
-            git push origin main
-          else
-            echo "No rendering changes detected."
-          fi
             git push origin main
           else
             echo "No rendering changes detected."
