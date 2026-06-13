@@ -113,14 +113,25 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # 1. Fetch the latest changes from GitHub without merging yet
+          git fetch origin main
+
+          # 2. Stage all the newly generated GIFs and the README catalog
           git add -A output
 
           if ! git diff --staged --quiet; then
             git commit -m "Update Pixlet renders and generate Catalog [skip ci]"
             
-            # Pull any recent changes to avoid a rejected push
-            git pull --rebase origin main
+            # 3. Pull using the "ours" strategy option (-X ours). 
+            # If a conflict occurs over modified/deleted webp files, Git automatically 
+            # accepts our deletion and ignores the remote changes.
+            git pull -X ours --no-rebase origin main
             
+            # 4. Push the clean, conflict-free result back to the repository
+            git push origin main
+          else
+            echo "No rendering changes detected."
+          fi
             git push origin main
           else
             echo "No rendering changes detected."
