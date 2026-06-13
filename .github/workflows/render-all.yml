@@ -42,7 +42,7 @@ jobs:
 
       - name: Create working directories
         run: |
-          mkdir -p output scripts
+          mkdir -p output scripts debug_frames
 
       - name: Create WebP to INFOMATRIX3D converter with debug logging
         run: |
@@ -51,9 +51,11 @@ jobs:
           import struct
           import sys
           import os
+          import hashlib
 
           input_webp = sys.argv[1]
           output_file = sys.argv[2]
+          debug_dir = sys.argv[3]
 
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
@@ -68,11 +70,12 @@ jobs:
           def rgb888_to_rgb565(r, g, b):
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
-          def get_frame_delay_ms(im):
-              # Raw delay reported by Pillow from animated WebP metadata
+          def image_hash(img):
+              return hashlib.md5(img.tobytes()).hexdigest()
+
+          def get_frame_delay_info(im):
               raw_duration = im.info.get("duration", 0)
 
-              # Fallback if duration is missing or zero
               if raw_duration is None or raw_duration <= 0:
                   effective_duration = BASE_DELAY_MS
                   used_fallback = True
@@ -80,20 +83,27 @@ jobs:
                   effective_duration = int(raw_duration)
                   used_fallback = False
 
-              # Enforce minimum delay
-              clamped_duration = max(effective_duration, MIN_DELAY_MS)
+              written_duration = max(effective_duration, MIN_DELAY_MS)
 
-              return raw_duration, effective_duration, clamped_duration, used_fallback
+              return {
+                  "raw": raw_duration,
+                  "effective": effective_duration,
+                  "written": written_duration,
+                  "used_fallback": used_fallback,
+              }
+
+          os.makedirs(debug_dir, exist_ok=True)
 
           im = Image.open(input_webp)
 
           frames = []
-          delays = []
+          delay_info = []
 
           if DEBUG_TIMING:
               print("=== WEBP DEBUG START ===")
               print(f"Input file: {input_webp}")
               print(f"Output file: {output_file}")
+              print(f"Debug frame dir: {debug_dir}")
               print(f"Target size: {WIDTH}x{HEIGHT}")
               print(f"MIN_DELAY_MS={MIN_DELAY_MS}")
               print(f"BASE_DELAY_MS={BASE_DELAY_MS}")
@@ -102,60 +112,102 @@ jobs:
 
           if not getattr(im, "is_animated", False):
               frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+              info = {
+                  "raw": None,
+                  "effective": BASE_DELAY_MS,
+                  "written": max(BASE_DELAY_MS, MIN_DELAY_MS),
+                  "used_fallback": True,
+              }
+
               frames.append(frame.copy())
-              delays.append(max(BASE_DELAY_MS, MIN_DELAY_MS))
+              delay_info.append(info)
+
+              debug_path = os.path.join(debug_dir, f"frame_0_delay_{info['written']}ms.png")
+              frame.save(debug_path)
 
               if DEBUG_TIMING:
                   print("Input is not animated; writing single frame.")
-                  print(f"Output delays: {delays}")
+                  print(f"Frame 0: raw_duration=None, effective_duration={info['effective']} ms, written_duration={info['written']} ms, used_fallback=True")
+                  print(f"Saved debug frame: {debug_path}")
+                  print(f"Frame 0 hash: {image_hash(frame)}")
           else:
               if DEBUG_TIMING:
                   print(f"Animated WebP frame count: {im.n_frames}")
 
-              total_raw = 0
-              total_effective = 0
-              total_written = 0
-
               for i in range(im.n_frames):
                   im.seek(i)
-
-                  raw_duration, effective_duration, clamped_duration, used_fallback = get_frame_delay_ms(im)
-
+                  info = get_frame_delay_info(im)
                   frame = im.convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-                  frames.append(frame.copy())
-                  delays.append(clamped_duration)
 
-                  total_raw += int(raw_duration or 0)
-                  total_effective += int(effective_duration)
-                  total_written += int(clamped_duration)
+                  frames.append(frame.copy())
+                  delay_info.append(info)
+
+                  debug_path = os.path.join(debug_dir, f"frame_{i}_delay_{info['written']}ms.png")
+                  frame.save(debug_path)
 
                   if DEBUG_TIMING:
                       print(
                           f"Frame {i}: "
-                          f"raw_duration={raw_duration} ms, "
-                          f"effective_duration={effective_duration} ms, "
-                          f"written_duration={clamped_duration} ms, "
-                          f"used_fallback={used_fallback}"
+                          f"raw_duration={info['raw']} ms, "
+                          f"effective_duration={info['effective']} ms, "
+                          f"written_duration={info['written']} ms, "
+                          f"used_fallback={info['used_fallback']}"
                       )
+                      print(f"Saved debug frame: {debug_path}")
+                      print(f"Frame {i} hash: {image_hash(frame)}")
 
-              if DEBUG_TIMING:
-                  print(f"Total raw duration from metadata: {total_raw} ms")
-                  print(f"Total effective duration before MIN clamp: {total_effective} ms")
-                  print(f"Total written duration after MIN clamp: {total_written} ms")
-                  print(f"Final delays written: {delays}")
+              # General first-frame normalization rule:
+              # If frame 0 has no explicit delay, infer it from later explicit delays.
+              if len(delay_info) >= 2:
+                  frame0_raw = delay_info[0]["raw"]
+
+                  if frame0_raw is None or frame0_raw == 0:
+                      later_explicit = []
+                      for d in delay_info[1:]:
+                          raw = d["raw"]
+                          if raw is not None and raw > 0:
+                              later_explicit.append(int(raw))
+
+                      if later_explicit:
+                          old_delay = delay_info[0]["written"]
+
+                          if all(x == later_explicit[0] for x in later_explicit):
+                              inferred_delay = later_explicit[0]
+                              reason = "all later explicit delays match"
+                          else:
+                              inferred_delay = later_explicit[0]
+                              reason = "used first later explicit delay"
+
+                          delay_info[0]["effective"] = inferred_delay
+                          delay_info[0]["written"] = max(inferred_delay, MIN_DELAY_MS)
+                          delay_info[0]["used_fallback"] = False
+
+                          if DEBUG_TIMING:
+                              print("Applied first-frame normalization:")
+                              print(f"  Frame 0 raw delay was {frame0_raw}")
+                              print(f"  Reason: {reason}")
+                              print(f"  Later explicit delays: {later_explicit}")
+                              print(f"  Frame 0 delay changed from {old_delay} ms to {delay_info[0]['written']} ms")
 
           if not frames:
               raise RuntimeError("No frames found in input WebP")
 
+          delays = [d["written"] for d in delay_info]
+
+          if DEBUG_TIMING:
+              total_raw = sum(int(d["raw"] or 0) for d in delay_info)
+              total_effective = sum(int(d["effective"]) for d in delay_info)
+              total_written = sum(int(d["written"]) for d in delay_info)
+              print(f"Total raw duration from metadata: {total_raw} ms")
+              print(f"Total effective duration after normalization inference: {total_effective} ms")
+              print(f"Total written duration after MIN clamp: {total_written} ms")
+              print(f"Final delays written: {delays}")
+
           with open(output_file, "wb") as f:
-              # Header
               f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
 
-              # Frame records
               for idx, frame in enumerate(frames):
                   delay = int(delays[idx])
-
-                  # Frame metadata: delay + reserved
                   f.write(struct.pack("<HH", delay, 0))
 
                   pixels = frame.load()
@@ -169,14 +221,67 @@ jobs:
               print("=== WEBP DEBUG END ===")
           EOF
 
+      - name: Create ANIM verifier
+        run: |
+          cat > scripts/verify_anim.py << 'EOF'
+          import struct
+          import sys
+
+          anim_file = sys.argv[1]
+
+          HEADER_FMT = "<4sHHHHHH"
+          HEADER_SIZE = struct.calcsize(HEADER_FMT)
+          FRAME_META_FMT = "<HH"
+          FRAME_META_SIZE = struct.calcsize(FRAME_META_FMT)
+
+          with open(anim_file, "rb") as f:
+              header = f.read(HEADER_SIZE)
+              if len(header) != HEADER_SIZE:
+                  raise RuntimeError("Failed to read ANIM header")
+
+              magic, version, width, height, frame_count, loop_count, reserved = struct.unpack(HEADER_FMT, header)
+
+              print("=== ANIM VERIFY START ===")
+              print(f"File: {anim_file}")
+              print(f"Magic: {magic}")
+              print(f"Version: {version}")
+              print(f"Width: {width}")
+              print(f"Height: {height}")
+              print(f"Frame count: {frame_count}")
+              print(f"Loop count: {loop_count}")
+              print(f"Reserved: {reserved}")
+
+              pixel_data_size = width * height * 2
+              delays = []
+
+              for i in range(frame_count):
+                  frame_meta = f.read(FRAME_META_SIZE)
+                  if len(frame_meta) != FRAME_META_SIZE:
+                      raise RuntimeError(f"Failed to read metadata for frame {i}")
+
+                  delay, frame_reserved = struct.unpack(FRAME_META_FMT, frame_meta)
+                  delays.append(delay)
+
+                  pixel_data = f.read(pixel_data_size)
+                  if len(pixel_data) != pixel_data_size:
+                      raise RuntimeError(f"Failed to read pixel data for frame {i}")
+
+                  print(f"Frame {i}: stored_delay={delay} ms, reserved={frame_reserved}")
+
+              print(f"Stored delays: {delays}")
+              print(f"Total stored duration: {sum(delays)} ms")
+              print("=== ANIM VERIFY END ===")
+          EOF
+
       - name: Clean old generated files
         run: |
-          mkdir -p output
+          mkdir -p output debug_frames
           if [ "${USE_2X}" = "true" ]; then
             find output -type f \( -name "*2x.webp" -o -name "*2x.anim" \) -delete
           else
             find output -type f \( -name "*.webp" -o -name "*.anim" \) -delete
           fi
+          find debug_frames -type f -name "*.png" -delete || true
 
       - name: Render all .star files and convert them
         shell: bash
@@ -189,6 +294,10 @@ jobs:
             rel="${file#apps/}"
             stem="${rel%.star}"
             safe_name="${stem//\//_}"
+            debug_dir="debug_frames/${safe_name}"
+
+            rm -rf "${debug_dir}"
+            mkdir -p "${debug_dir}"
 
             if [ "${USE_2X}" = "true" ]; then
               webp="output/${safe_name}2x.webp"
@@ -204,9 +313,11 @@ jobs:
             echo "Rendering: $file"
             echo "Generated WebP: $webp"
             echo "Output ANIM:    $anim"
+            echo "Debug frames:   $debug_dir"
             echo "========================================"
 
-            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim"
+            python3 scripts/webp_to_anim_rgb565.py "$webp" "$anim" "$debug_dir"
+            python3 scripts/verify_anim.py "$anim"
           done < <(find apps -type f -name "*.star" | sort)
 
           if [ "$found_any" = "false" ]; then
@@ -216,17 +327,21 @@ jobs:
 
       - name: Show generated files
         run: |
+          echo "=== output ==="
           find output -type f | sort
+          echo
+          echo "=== debug_frames ==="
+          find debug_frames -type f | sort
 
       - name: Commit and push results
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -A output
+          git add -A output debug_frames
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet renders [skip ci]"
+            git commit -m "Update Pixlet renders and debug frames [skip ci]"
             git push origin main
           else
             echo "No rendering changes detected."
