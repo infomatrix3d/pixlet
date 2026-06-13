@@ -7,8 +7,7 @@ on:
 
 env:
   TZ: "America/Toronto"
-  USE_2X: "false"
-  # Note: Python-specific env vars (PANEL_WIDTH, MAX_FRAMES, etc.) have been removed.
+  USE_2X: "true"
 
 permissions:
   contents: write
@@ -22,10 +21,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        # Removed Python and Pillow as they are no longer needed
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl
+          # Adding ffmpeg here just to guarantee it is available
+          sudo apt-get install -y curl ffmpeg
 
       - name: Install Pixlet
         run: |
@@ -36,12 +35,10 @@ jobs:
           pixlet version
 
       - name: Create working directories
-        # Removed scripts directory since the Python script is gone
         run: |
           mkdir -p output
 
       - name: Clean old generated files
-        # Updated to clean up .gif files instead of .webp/.anim
         run: |
           mkdir -p output
           if [ "${USE_2X}" = "true" ]; then
@@ -50,7 +47,7 @@ jobs:
             find output -type f -name "*.gif" -delete
           fi
 
-      - name: Render all .star files to GIF
+      - name: Render to WebP and Convert to GIF
         shell: bash
         run: |
           set -euo pipefail
@@ -62,14 +59,24 @@ jobs:
             stem="${rel%.star}"
             safe_name="${stem//\//_}"
 
-            # Pixlet automatically outputs a GIF if the extension is .gif
             if [ "${USE_2X}" = "true" ]; then
+              webp="output/${safe_name}2x.webp"
               gif="output/${safe_name}2x.gif"
-              pixlet render --gif -2 "$file" -o "$gif"
+              pixlet render -2 "$file" -o "$webp"
             else
+              webp="output/${safe_name}.webp"
               gif="output/${safe_name}.gif"
-              pixlet render --gif "$file" -o "$gif"
+              pixlet render "$file" -o "$webp"
             fi
+
+            # Use FFmpeg to convert the animated WebP into a true GIF
+            # -v warning: Hides terminal spam
+            # -vf split...: Generates a custom color palette so the GIF looks perfect
+            # -loop 0: Ensures the animation loops infinitely
+            ffmpeg -v warning -i "$webp" -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 "$gif" -y
+            
+            # Delete the WebP so we only commit the GIF
+            rm "$webp"
 
           done < <(find apps -type f -name "*.star" | sort)
 
