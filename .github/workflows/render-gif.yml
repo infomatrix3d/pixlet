@@ -1,4 +1,4 @@
-name: Render Pixlet Apps as Real GIF
+name: Build Latest Pixlet and Render GIFs
 
 on:
   push:
@@ -17,21 +17,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout your repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl
+          sudo apt-get install -y make curl git libwebp-dev nodejs npm golang
 
-      - name: Install Pixlet
+      - name: Clone latest Tronbyt Pixlet
         run: |
-          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
-          tar -xvf "pixlet_v0.53.0_linux-amd64.tar.gz"
-          chmod +x ./pixlet
-          sudo mv ./pixlet /usr/local/bin/pixlet
-          pixlet version
+          git clone --depth 1 https://github.com/Tronbyt/pixlet.git tronbyt-pixlet
+          cd tronbyt-pixlet
+          git log -1 --oneline
+
+      - name: Build latest Pixlet from source
+        run: |
+          set -euo pipefail
+          cd tronbyt-pixlet
+          npm --prefix=frontend install
+          npm --prefix=frontend run build
+          make build
+          ./pixlet version || true
+
+      - name: Show Pixlet help
+        run: |
+          cd tronbyt-pixlet
+          echo "=== pixlet render --help ==="
+          ./pixlet render --help || true
+          echo
+          echo "=== pixlet serve --help ==="
+          ./pixlet serve --help || true
+
+      - name: Detect GIF render capability
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd tronbyt-pixlet
+
+          if ./pixlet render --help 2>&1 | grep -q -- '--gif'; then
+            echo "PIXLET_RENDER_GIF_FLAG=true" >> "$GITHUB_ENV"
+            echo "Detected: pixlet render supports --gif"
+          else
+            echo "PIXLET_RENDER_GIF_FLAG=false" >> "$GITHUB_ENV"
+            echo "Detected: pixlet render does NOT expose --gif; workflow will still try .gif output and validate the header"
+          fi
 
       - name: Create output directory
         run: mkdir -p output
@@ -45,11 +75,13 @@ jobs:
             find output -type f -name "*.gif" -delete
           fi
 
-      - name: Render all .star files as GIF
+      - name: Render all .star files to GIF
         shell: bash
         run: |
           set -euo pipefail
           found_any=false
+
+          PIXLET_BIN="$GITHUB_WORKSPACE/tronbyt-pixlet/pixlet"
 
           while IFS= read -r file; do
             found_any=true
@@ -60,13 +92,31 @@ jobs:
 
             if [ "${USE_2X}" = "true" ]; then
               gif="output/${safe_name}2x.gif"
-              pixlet render --gif -2 "$file" -o "$gif"
+              if [ "${PIXLET_RENDER_GIF_FLAG}" = "true" ]; then
+                "$PIXLET_BIN" render --gif -2 "$file" -o "$gif"
+              else
+                "$PIXLET_BIN" render -2 "$file" -o "$gif"
+              fi
             else
               gif="output/${safe_name}.gif"
-              pixlet render --gif "$file" -o "$gif"
+              if [ "${PIXLET_RENDER_GIF_FLAG}" = "true" ]; then
+                "$PIXLET_BIN" render --gif "$file" -o "$gif"
+              else
+                "$PIXLET_BIN" render "$file" -o "$gif"
+              fi
             fi
 
             echo "Rendered: $gif"
+
+            header="$(head -c 6 "$gif" || true)"
+            echo "$gif -> header: $header"
+
+            if [ "$header" != "GIF87a" ] && [ "$header" != "GIF89a" ]; then
+              echo "ERROR: $gif is not a real GIF file"
+              echo "This Pixlet build did not emit GIF bytes for this command path."
+              echo "Check the help output above and update the render invocation accordingly."
+              exit 1
+            fi
           done < <(find apps -type f -name "*.star" | sort)
 
           if [ "$found_any" = "false" ]; then
@@ -74,32 +124,11 @@ jobs:
             exit 1
           fi
 
-      - name: Validate generated files are real GIFs
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-
-          files=(output/*.gif)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No GIF files were generated."
-            exit 1
-          fi
-
-          for f in "${files[@]}"; do
-            header="$(head -c 6 "$f" || true)"
-            echo "$f -> header: $header"
-            if [ "$header" != "GIF87a" ] && [ "$header" != "GIF89a" ]; then
-              echo "ERROR: $f is not a real GIF file"
-              exit 1
-            fi
-          done
-
       - name: Show generated files
         run: |
           find output -type f | sort
 
-      - name: Commit and push results
+      - name: Commit and push generated GIFs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
