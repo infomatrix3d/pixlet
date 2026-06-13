@@ -13,7 +13,7 @@ env:
   PANEL_HEIGHT: "64"
   MAX_FRAMES: "60"
   MIN_DELAY_MS: "50"
-  BASE_DELAY_MS: "100"
+  BASE_DELAY_MS: "1000"
 
 permissions:
   contents: write
