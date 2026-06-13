@@ -94,7 +94,13 @@ jobs:
 
           if ! git diff --staged --quiet; then
             git commit -m "Update Pixlet renders to GIF [skip ci]"
+            
+            # FIX: Pull any recent changes to avoid a rejected push
+            git pull --rebase origin main
+            
             git push origin main
           else
+            echo "No rendering changes detected."
+          fi
             echo "No rendering changes detected."
           fi
