@@ -65,10 +65,10 @@ jobs:
             # Pixlet automatically outputs a GIF if the extension is .gif
             if [ "${USE_2X}" = "true" ]; then
               gif="output/${safe_name}2x.gif"
-              pixlet render -2 "$file" -o "$gif"
+              pixlet render --gif -2 "$file" -o "$gif"
             else
               gif="output/${safe_name}.gif"
-              pixlet render "$file" -o "$gif"
+              pixlet render --gif "$file" -o "$gif"
             fi
 
           done < <(find apps -type f -name "*.star" | sort)
