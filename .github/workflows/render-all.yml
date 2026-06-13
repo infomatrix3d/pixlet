@@ -1,36 +1,27 @@
-
 name: Render and Convert All Pixlet Apps
 
 on:
   push:
     branches: [ main ]
   schedule:
+    # Runs every 10 minutes (Subject to standard GitHub queue delays)
     - cron: '2,12,22,32,42,52 * * * *'
   workflow_dispatch:
 
 env:
-  #Timezone
   TZ: "America/Toronto"  
-  
-  # Render apps at 2x (128x64) directly from Pixlet
   USE_2X: "true"
-
-  # Target panel size
   PANEL_WIDTH: "128"
   PANEL_HEIGHT: "64"
-
-  # Maximum number of frames to keep in the final .anim < ensure output size remains below 1 MB
   MAX_FRAMES: "60"
-
-  # Minimum frame delay in the generated .anim
   MIN_DELAY_MS: "50"
-
-  # Base delay per extracted frame before auto-skip multiplication
   BASE_DELAY_MS: "100"
+
+permissions:
+  contents: write
 
 jobs:
   render_and_convert:
-    
     runs-on: ubuntu-latest
 
     steps:
@@ -55,7 +46,6 @@ jobs:
         run: |
           mkdir -p output scripts tmp_frames
 
-      # Convert to .anim file for infomatrix - www.infomatrix3d.com
       - name: Create PNG frames to INFOMATRIX3D
         run: |
           cat > scripts/png_frames_to_anim_rgb565.py << 'EOF'
@@ -72,7 +62,6 @@ jobs:
 
           WIDTH = int(os.environ.get("PANEL_WIDTH", "128"))
           HEIGHT = int(os.environ.get("PANEL_HEIGHT", "64"))
-
           MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "60"))
           MIN_DELAY_MS = int(os.environ.get("MIN_DELAY_MS", "50"))
           BASE_DELAY_MS = int(os.environ.get("BASE_DELAY_MS", "100"))
@@ -85,7 +74,6 @@ jobs:
               return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
           def image_hash(img):
-              # Exact hash of resized RGB frame data
               return hashlib.md5(img.tobytes()).hexdigest()
 
           frame_files = sorted(glob.glob(os.path.join(frames_dir, "frame_*.png")))
@@ -93,87 +81,46 @@ jobs:
               raise RuntimeError(f"No extracted PNG frames found in {frames_dir}")
 
           total_frames = len(frame_files)
-
-          # Auto-calculate frame step:
-          # e.g. 120 total frames, MAX_FRAMES=60 -> frame_step=2
           frame_step = max(1, math.ceil(total_frames / MAX_FRAMES))
-
-          print(f"Extracted PNG frame files: {total_frames}")
-          print(f"MAX_FRAMES: {MAX_FRAMES}")
-          print(f"Auto-calculated frame_step: {frame_step}")
 
           frames = []
           delays = []
-
           last_hash = None
-          deduped_count = 0
-          skipped_count = 0
 
           for i, frame_file in enumerate(frame_files):
               if i % frame_step != 0:
-                  skipped_count += 1
                   continue
 
               img = Image.open(frame_file).convert("RGB")
               img = img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
-
               h = image_hash(img)
-
-              # Stretch delay based on skipped frames
               effective_delay = BASE_DELAY_MS * frame_step
               if effective_delay < MIN_DELAY_MS:
                   effective_delay = MIN_DELAY_MS
 
-              # Merge duplicate consecutive frames by extending delay
               if last_hash is not None and h == last_hash:
                   delays[-1] += effective_delay
-                  deduped_count += 1
-                  print(f"Frame {i:03d} -> duplicate of previous, merged, hash={h}")
                   continue
-
-              print(f"Frame {i:03d} -> output idx {len(frames):03d}, hash={h}, delay={effective_delay}")
 
               frames.append(img)
               delays.append(effective_delay)
               last_hash = h
 
               if len(frames) >= MAX_FRAMES:
-                  print(f"Reached MAX_FRAMES={MAX_FRAMES}, stopping")
                   break
 
           if not frames:
-              raise RuntimeError("No frames selected after auto-skip/dedupe")
+              raise RuntimeError("No frames selected")
 
           with open(output_file, "wb") as f:
-              # File header:
-              # magic[4], version, width, height, frameCount, loopCount, reserved
-              f.write(struct.pack(
-                  "<4sHHHHHH",
-                  MAGIC,
-                  VERSION,
-                  WIDTH,
-                  HEIGHT,
-                  len(frames),
-                  LOOP_COUNT,
-                  0
-              ))
-
-              # Each frame:
-              # delayMs (uint16), reserved (uint16), RGB565 pixel data
+              f.write(struct.pack("<4sHHHHHH", MAGIC, VERSION, WIDTH, HEIGHT, len(frames), LOOP_COUNT, 0))
               for idx, frame in enumerate(frames):
                   f.write(struct.pack("<HH", delays[idx], 0))
                   pixels = frame.load()
                   for y in range(HEIGHT):
                       for x in range(WIDTH):
                           r, g, b = pixels[x, y]
-                          rgb565 = rgb888_to_rgb565(r, g, b)
-                          f.write(struct.pack("<H", rgb565))
-
-          print(f"Wrote: {output_file}")
-          print(f"Output frame count: {len(frames)}")
-          print(f"Skipped by frame_step: {skipped_count}")
-          print(f"Merged duplicate frames: {deduped_count}")
-          print(f"Output size: {os.path.getsize(output_file)} bytes")
+                          f.write(struct.pack("<H", rgb888_to_rgb565(r, g, b)))
           EOF
 
       - name: Clean old generated files
@@ -191,38 +138,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           found_any=false
 
           while IFS= read -r file; do
             found_any=true
-
             rel="${file#apps/}"
             stem="${rel%.star}"
             safe_name="${stem//\//_}"
-
-
             frames_dir="tmp_frames/${safe_name}"
 
             rm -rf "${frames_dir}"
             mkdir -p "${frames_dir}"
 
-            echo "--------------------------------------------------"
-            echo "Processing: ${file}"
-
             if [ "${USE_2X}" = "true" ]; then
               webp="output/${safe_name}2x.webp"
               anim="output/${safe_name}2x.anim"
-              echo "Rendering in 2x mode"
               pixlet render -2 "$file" -o "$webp"
             else
               webp="output/${safe_name}.webp"
               anim="output/${safe_name}.anim"
-              echo "Rendering in normal mode"
               pixlet render "$file" -o "$webp"
             fi
 
-            echo "Extracting/coalescing frames with ImageMagick"
             if command -v magick >/dev/null 2>&1; then
               magick "$webp" -coalesce "${frames_dir}/frame_%03d.png"
             else
@@ -230,11 +167,6 @@ jobs:
             fi
 
             python3 scripts/png_frames_to_anim_rgb565.py "${frames_dir}" "$anim"
-
-            echo "Generated:"
-            echo "  $webp"
-            echo "  $anim"
-
           done < <(find apps -type f -name "*.star" | sort)
 
           if [ "$found_any" = "false" ]; then
@@ -244,7 +176,6 @@ jobs:
 
       - name: Show generated files
         run: |
-          echo "Generated files:"
           find output -type f | sort
 
       - name: Commit and push results
@@ -254,9 +185,9 @@ jobs:
 
           git add -A output
 
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Pixlet renders [skip ci]"
+            git push origin main
           else
-            git commit -m "Update Pixlet outputs [skip ci]"
-            git push
+            echo "No rendering changes detected."
           fi
