@@ -3,6 +3,7 @@ name: Render All Pixlet Apps as GIF
 on:
   push:
     branches: [ main ]
+
   workflow_dispatch:
 
 env:
@@ -33,11 +34,13 @@ jobs:
           sudo mv ./pixlet /usr/local/bin/pixlet
           pixlet version
 
-      - name: Create output folder
-        run: mkdir -p output
-
-      - name: Clean old generated files
+      - name: Create output directory
         run: |
+          mkdir -p output
+
+      - name: Clean old generated GIFs
+        run: |
+          mkdir -p output
           if [ "${USE_2X}" = "true" ]; then
             find output -type f -name "*2x.gif" -delete
           else
@@ -87,3 +90,4 @@ jobs:
           else
             echo "No rendering changes detected."
           fi
+``
