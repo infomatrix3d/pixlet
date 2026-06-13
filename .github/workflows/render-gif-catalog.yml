@@ -140,7 +140,7 @@ jobs:
                       <div class="preview-container">
                           <img src="output/${filename}" alt="${appname}">
                       </div>
-                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url}')">Copy ESP32 URL</button>
+                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url},')">Copy ESP32 URL</button>
                   </div>
           EOF
             fi
