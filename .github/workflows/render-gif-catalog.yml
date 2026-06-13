@@ -80,14 +80,14 @@ jobs:
             exit 1
           fi
 
-      - name: Create HTML Embeddable Catalog (index.html)
+      - name: Create HTML Embeddable Catalog (index.html in Root)
         shell: bash
         run: |
           REPO_PATH="${{ github.repository }}"
           RAW_BASE_URL="https://raw.githubusercontent.com/${REPO_PATH}/main/output"
 
-          # Start writing the standalone HTML structure with CSS styling and JS copy helper
-          cat << EOF > output/index.html
+          # Start writing the standalone HTML structure directly to the root index.html
+          cat << EOF > index.html
           <!DOCTYPE html>
           <html lang="en">
           <head>
@@ -127,18 +127,18 @@ jobs:
               <div class="grid">
           EOF
 
-          # Dynamically append cards for every generated GIF
+          # Dynamically append cards for every generated GIF (pointing images to the output folder)
           for gif in output/*.gif; do
             if [ -f "$gif" ]; then
               filename=$(basename "$gif")
               appname="${filename%.gif}"
               full_raw_url="${RAW_BASE_URL}/${filename}"
               
-              cat << EOF >> output/index.html
+              cat << EOF >> index.html
                   <div class="card">
                       <div class="card-title">${appname}</div>
                       <div class="preview-container">
-                          <img src="${filename}" alt="${appname}">
+                          <img src="output/${filename}" alt="${appname}">
                       </div>
                       <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url}')">Copy ESP32 URL</button>
                   </div>
@@ -147,7 +147,7 @@ jobs:
           done
 
           # Close the HTML structures
-          cat << EOF >> output/index.html
+          cat << EOF >> index.html
               </div>
           </body>
           </html>
@@ -156,26 +156,27 @@ jobs:
       - name: Show generated files
         run: |
           find output -type f | sort
+          ls -la index.html
 
       - name: Commit and push results
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Fetch the latest changes from GitHub without merging yet
+          # Fetch latest remote changes
           git fetch origin main
 
-          # Stage all the newly generated GIFs and the index.html catalog
-          git add -A output
+          # Stage the newly generated GIFs and the root index.html page
+          git add -A output index.html
 
           if ! git diff --staged --quiet; then
-            git commit -m "Update Pixlet renders and generate HTML Catalog [skip ci]"
+            git commit -m "Update Renders and web catalog [skip ci]"
             
-            # Pull using the "ours" strategy option to prevent conflicts
+            # Pull using "ours" strategy option to safely bypass conflicts
             git pull -X ours --no-rebase origin main
             
             # Push clean changes
             git push origin main
           else
-            echo "No rendering changes detected."
+            echo "No changes detected."
           fi
