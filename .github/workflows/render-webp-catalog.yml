@@ -149,7 +149,7 @@ jobs:
 
           </head>
           <body>
-              <h1 class="catalog-title">📺 Pixlet App Catalog</h1>
+              <h1 class="catalog-title">📺 InfoMatrix App Catalog</h1>
               <div class="grid">
           EOF
 
