@@ -123,7 +123,7 @@ jobs:
               </script>
           </head>
           <body>
-              <h1 class="catalog-title">📺 Pixlet App Catalog</h1>
+              <h1 class="catalog-title">📺 Infomatrix Pixlet App Catalog</h1>
               <div class="grid">
           EOF
 
@@ -140,7 +140,7 @@ jobs:
                       <div class="preview-container">
                           <img src="output/${filename}" alt="${appname}">
                       </div>
-                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url},')">Copy ESP32 URL</button>
+                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url},')">Copy GIF URL</button>
                   </div>
           EOF
             fi
