@@ -27,7 +27,7 @@ PRAYER_TIME_BASE_URL = "http://api.aladhan.com/v1/timings/"
 # Default location and timezone data for prayer
 DEFAULT_LOCATION = """
 {
-    "timezone": "America/Toronto",
+    "timezone": "Canada/Eastern",
     "lat": "43.76036832881343",
 	"lng": "-79.35905460952692"
 }
