@@ -16,21 +16,59 @@
         .copy-btn:hover { background-color: #2c974b; }
         .copy-btn.copied { background-color: #0969da; }
     </style>
+
     <script>
-        function copyUrl(btn, url) {
-            navigator.clipboard.writeText(url).then(() => {
-                const originalText = btn.innerText;
-                btn.innerText = "✓ Copied!";
-                btn.classList.add("copied");
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.remove("copied");
-                }, 2000);
-            }).catch(err => {
-                alert("Failed to copy URL automatically.");
-            });
-        }
-    </script>
+          async function copyUrl(btn, url) {
+              if (!url) {
+                  alert("No URL available to copy.");
+                  return;
+              }
+  
+              const originalText = btn.innerText;
+  
+              try {
+                  // Modern Clipboard API
+                  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                      await navigator.clipboard.writeText(url);
+                      showCopiedState(btn, originalText);
+                      return;
+                  }
+  
+                  // Fallback for iframe / older browser / restricted context
+                  const textArea = document.createElement("textarea");
+                  textArea.value = url;
+                  textArea.setAttribute("readonly", "");
+                  textArea.style.position = "fixed";
+                  textArea.style.left = "-9999px";
+                  textArea.style.top = "0";
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+  
+                  const success = document.execCommand("copy");
+                  document.body.removeChild(textArea);
+  
+                  if (success) {
+                      showCopiedState(btn, originalText);
+                  } else {
+                      prompt("Copy this URL manually:", url);
+                  }
+              } catch (err) {
+                  console.error("Copy failed:", err);
+                  prompt("Clipboard unavailable. Copy this URL manually:", url);
+              }
+          }
+  
+          function showCopiedState(btn, originalText) {
+              btn.innerText = "✓ Copied!";
+              btn.classList.add("copied");
+              setTimeout(() => {
+                  btn.innerText = originalText;
+                  btn.classList.remove("copied");
+              }, 2000);
+          }
+      </script>
+
 </head>
 <body>
     <h1 class="catalog-title">📺 Pixlet App Catalog</h1>
