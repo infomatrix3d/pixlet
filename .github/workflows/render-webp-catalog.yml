@@ -81,7 +81,7 @@ jobs:
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Pixlet App Catalog</title>
+              <title>InfoMatrix Pixlet App Catalog</title>
               <style>
                   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px; color: #24292f; }
                   .catalog-title { text-align: center; margin-bottom: 30px; font-size: 28px; }
@@ -128,7 +128,7 @@ jobs:
                       <div class="preview-container">
                           <img src="output/${filename}" alt="${appname}">
                       </div>
-                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url}')">Copy ESP32 URL</button>
+                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url},')">Copy WebP URL</button>
                   </div>
           EOF
             fi
