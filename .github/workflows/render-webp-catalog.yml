@@ -7,7 +7,7 @@ on:
 
 env:
   TZ: "America/Toronto"
-  USE_2X: "true"   // creates also 2x for 128x64 pixel
+  USE_2X: "true"   # creates also 2x for 128x64 pixel
 
 permissions:
   contents: write
@@ -57,10 +57,10 @@ jobs:
               webp="output/${safe_name}2x.webp"
               pixlet render -2 "$file" -o "$webp"
             fi
-            // else
+            # else
               webp="output/${safe_name}.webp"
               pixlet render "$file" -o "$webp"
-           // fi
+            # fi
 
           done < <(find apps -type f -name "*.star" | sort)
 
