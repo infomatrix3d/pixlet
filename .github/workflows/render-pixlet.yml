@@ -1,204 +1,204 @@
-name: Render Pixlet Apps
+name: Render All Pixlet Apps (Native WebP)
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      tenant_start:
-        description: "Start tenant ID"
-        required: true
-        default: "1001"
-      tenant_end:
-        description: "End tenant ID"
-        required: true
-        default: "1010"
-
-
-permissions:
-  contents: read
 
 env:
-  CF_WORKER_BASE_URL: ${{ secrets.CF_WORKER_BASE_URL }}
+  TZ: "America/Toronto"
+  USE_2X: "true"   # creates also 2x for 128x64 pixel
+
+permissions:
+  contents: write
 
 jobs:
-  plan:
-    name: Build tenant matrix
+  render_apps:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.build-matrix.outputs.matrix }}
 
     steps:
-      - name: Build tenant matrix JSON
-        id: build-matrix
-        shell: bash
-        run: |
-          START="${{ github.event.inputs.tenant_start || '1001' }}"
-          END="${{ github.event.inputs.tenant_end || '1010' }}"
-
-          python - <<'PY'
-          import json, os
-
-          start = int(os.environ["START"])
-          end = int(os.environ["END"])
-
-          matrix = {"include": []}
-          for tenant in range(start, end + 1):
-              matrix["include"].append({
-                  "tenant": str(tenant)
-              })
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write("matrix=" + json.dumps(matrix) + "\n")
-          PY
-        env:
-          START: ${{ github.event.inputs.tenant_start || '1001' }}
-          END: ${{ github.event.inputs.tenant_end || '1010' }}
-
-  render:
-    name: Render tenant ${{ matrix.tenant }}
-    needs: plan
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
-
-    steps:
-      - name: Checkout public repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Clone Tronbyt apps repo
-        shell: bash
-        run: |
-          git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
 
       - name: Install Pixlet
+        run: |
+          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
+          tar -xvf "pixlet_v0.53.0_linux-amd64.tar.gz"
+          chmod +x ./pixlet
+          sudo mv ./pixlet /usr/local/bin/pixlet
+          pixlet version
+
+      - name: Create working directories
+        run: |
+          mkdir -p output
+
+      - name: Clean old generated files
+        run: |
+          # Clean out old webp files from past renders
+          if [ "${USE_2X}" = "true" ]; then
+            find output -type f -name "*2x.webp" -delete || true
+          else
+            find output -type f -name "*.webp" -delete || true
+          fi
+
+      - name: Render directly to WebP
         shell: bash
         run: |
-          curl -L -o pixlet.tar.gz https://github.com/tronbyt/pixlet/releases/latest/download/pixlet_linux_amd64.tar.gz
-          tar -xzf pixlet.tar.gz
-          chmod +x pixlet
-          sudo mv pixlet /usr/local/bin/pixlet
-          pixlet version || true
+          set -euo pipefail
+          found_any=false
 
-      - name: Fetch enabled app manifest for tenant
+          while IFS= read -r file; do
+            found_any=true
+            rel="${file#apps/}"
+            stem="${rel%.star}"
+            safe_name="${stem//\//_}"
+
+            if [ "${USE_2X}" = "true" ]; then
+              webp="output/${safe_name}2x.webp"
+              pixlet render -2 "$file" -o "$webp"
+            fi
+            # else
+              webp="output/${safe_name}.webp"
+              pixlet render "$file" -o "$webp"
+            # fi
+
+          done < <(find apps -type f -name "*.star" | sort)
+
+          if [ "$found_any" = "false" ]; then
+            echo "No .star files found under apps/"
+            exit 1
+          fi
+
+      - name: Create WebP Embeddable Catalog (index.html)
         shell: bash
         run: |
-          mkdir -p work out/${{ matrix.tenant }}
+          REPO_PATH="${{ github.repository }}"
+          RAW_BASE_URL="https://raw.githubusercontent.com/${REPO_PATH}/main/output"
 
-          curl -sS \
-            -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
-            "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${{ matrix.tenant }}" \
-            -o work/manifest.json
+          # Start writing the standalone HTML structure directly to the root index.html
+          cat << EOF > index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>InfoMatrix Pixlet App Catalog</title>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px; color: #24292f; }
+                  .catalog-title { text-align: center; margin-bottom: 30px; font-size: 28px; }
+                  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+                  .card { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+                  .card-title { font-weight: 600; font-size: 16px; margin-bottom: 12px; word-break: break-all; text-align: center; }
+                  .preview-container { background: #000; padding: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 128px; height: 64px; margin-bottom: 16px; overflow: hidden; }
+                  .preview-container img { width: 100%; height: auto; image-rendering: pixelated; }
+                  .copy-btn { background-color: #2da44e; color: white; border: 1px solid rgba(27,31,36,0.15); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.2s; width: 100%; }
+                  .copy-btn:hover { background-color: #2c974b; }
+                  .copy-btn.copied { background-color: #0969da; }
+              </style>
 
-          echo "Manifest:"
-          cat work/manifest.json
+              <script>
+                    async function copyUrl(btn, url) {
+                        if (!url) {
+                            alert("No URL available to copy.");
+                            return;
+                        }
+            
+                        const originalText = btn.innerText;
+            
+                        try {
+                            // Modern Clipboard API
+                            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                                await navigator.clipboard.writeText(url);
+                                showCopiedState(btn, originalText);
+                                return;
+                            }
+            
+                            // Fallback for iframe / older browser / restricted context
+                            const textArea = document.createElement("textarea");
+                            textArea.value = url;
+                            textArea.setAttribute("readonly", "");
+                            textArea.style.position = "fixed";
+                            textArea.style.left = "-9999px";
+                            textArea.style.top = "0";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+            
+                            const success = document.execCommand("copy");
+                            document.body.removeChild(textArea);
+            
+                            if (success) {
+                                showCopiedState(btn, originalText);
+                            } else {
+                                prompt("Copy this URL manually:", url);
+                            }
+                        } catch (err) {
+                            console.error("Copy failed:", err);
+                            prompt("Clipboard unavailable. Copy this URL manually:", url);
+                        }
+                    }
+            
+                    function showCopiedState(btn, originalText) {
+                        btn.innerText = "✓ Copied!";
+                        btn.classList.add("copied");
+                        setTimeout(() => {
+                            btn.innerText = originalText;
+                            btn.classList.remove("copied");
+                        }, 2000);
+                    }
+                </script>
 
-      - name: Render all enabled apps for tenant
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import subprocess
-          import glob
-          import shlex
+          </head>
+          <body>
+              <h1 class="catalog-title">📺 InfoMatrix App Catalog</h1>
+              <div class="grid">
+          EOF
 
-          tenant = os.environ["TENANT"]
-          manifest_file = "work/manifest.json"
-          apps_root = "tronbyt-apps/apps"
-          out_root = f"out/{tenant}"
-
-          with open(manifest_file, "r", encoding="utf-8") as f:
-              data = json.load(f)
-
-          apps = data.get("apps", [])
-          if not apps:
-              print(f"No enabled apps for tenant {tenant}")
-              raise SystemExit(0)
-
-          def fmt(v):
-              if isinstance(v, bool):
-                  return "True" if v else "False"
-              if isinstance(v, (int, float)):
-                  return str(v)
-              return json.dumps(v)
-
-          for app in apps:
-              app_name = app["name"]
-              cfg = app.get("config", {}) or {}
-
-              app_dir = os.path.join(apps_root, app_name)
-              star_files = glob.glob(os.path.join(app_dir, "*.star"))
-
-              if not star_files:
-                  print(f"Skipping {app_name}: no .star file found in {app_dir}")
-                  continue
-
-              star_file = star_files[0]
-              output_file = os.path.join(out_root, f"{app_name}.webp")
-
-              args = ["/usr/local/bin/pixlet", "render", star_file]
-              for k, v in cfg.items():
-                  args.append(f"{k}={fmt(v)}")
-              args.extend(["-o", output_file])
-
-              print("Running:", " ".join(shlex.quote(a) for a in args))
-              subprocess.run(args, check=True)
-
-          PY
-        env:
-          TENANT: ${{ matrix.tenant }}
-
-      - name: Upload tenant renders
-        uses: actions/upload-artifact@v4
-        with:
-          name: tenant-${{ matrix.tenant }}-renders
-          path: out/${{ matrix.tenant }}
-
-  publish:
-    name: Publish renders to private repo
-    needs: render
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: downloaded-renders
-
-      - name: Checkout private repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ secrets.PRIVATE_REPO_NAME }}
-          token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}
-          path: private-repo
-
-      - name: Copy renders into private repo
-        shell: bash
-        run: |
-          mkdir -p private-repo/renders
-
-          find downloaded-renders -type f -name "*.webp" | while read -r file; do
-            tenant=$(echo "$file" | grep -oE '/[0-9]+/' | head -n1 | tr -d '/')
-            app_file=$(basename "$file")
-
-            mkdir -p "private-repo/renders/${tenant}"
-            cp "$file" "private-repo/renders/${tenant}/${app_file}"
+          # Dynamically append cards for every generated WebP asset
+          for webp in output/*.webp; do
+            if [ -f "$webp" ]; then
+              filename=$(basename "$webp")
+              appname="${filename%.webp}"
+              full_raw_url="${RAW_BASE_URL}/${filename}"
+              
+              cat << EOF >> index.html
+                  <div class="card">
+                      <div class="card-title">${appname}</div>
+                      <div class="preview-container">
+                          <img src="output/${filename}" alt="${appname}">
+                      </div>
+                      <button class="copy-btn" onclick="copyUrl(this, '${full_raw_url},')">Copy WebP URL</button>
+                  </div>
+          EOF
+            fi
           done
 
-          find private-repo/renders -type f | sort
+          # Close the HTML structures
+          cat << EOF >> index.html
+              </div>
+          </body>
+          </html>
+          EOF
 
-      - name: Commit and push
-        shell: bash
+      - name: Show generated files
         run: |
-          cd private-repo
-          git config user.name "pixlet-render-bot"
-          git config user.email "actions@github.com"
+          find output -type f | sort
+          ls -la index.html
 
-          git add renders/
+      - name: Commit and push results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --cached --quiet; then
-            echo "No changes to publish"
+          git fetch origin main
+
+          # Track the WebP files and updated index page
+          git add -A output index.html
+
+          if ! git diff --staged --quiet; then
+            git commit -m "Update native WebP renders and catalog [skip ci]"
+            git pull -X ours --no-rebase origin main
+            git push origin main
           else
-            git commit -m "Update rendered Pixlet WebP outputs"
-            git push
+            echo "No changes detected."
           fi
