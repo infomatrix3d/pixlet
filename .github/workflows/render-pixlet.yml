@@ -1,4 +1,4 @@
-name: Render Pixlet Apps
+name: Render Pixlet Apps Tenant
 
 on:
   workflow_dispatch:
