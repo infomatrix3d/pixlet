@@ -24,22 +24,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      #
-      # ✅ Checkout repo (workflow only, no outputs stored here)
-      #
       - name: Checkout public repo
         uses: actions/checkout@v4
 
-      #
-      # ✅ Clone Pixlet apps
-      #
-      - name: Clone Tronbyt apps repo
+      - name: Clone Pixlet apps
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
 
-      #
-      # ✅ Install Pixlet (stable version)
-      #
       - name: Install Pixlet
         run: |
           curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
@@ -48,125 +39,95 @@ jobs:
           sudo mv pixlet /usr/local/bin/pixlet
           pixlet version
 
-      #
-      # ✅ Build tenant list
-      #
       - name: Build tenant list
         run: |
           START=${{ github.event.inputs.tenant_start }}
           END=${{ github.event.inputs.tenant_end }}
-
           echo "TENANTS=$(seq $START $END | tr '\n' ' ')" >> $GITHUB_ENV
 
-      #
-      # ✅ Render per tenant (DEBUG SAFE)
-      #
-      - name: Render apps per tenant
+      - name: Render apps
         run: |
           set -euo pipefail
-
           mkdir -p out
 
           for TENANT in $TENANTS; do
-            echo "=================================="
             echo "Processing tenant: $TENANT"
-            echo "=================================="
-
-            mkdir -p work
 
             RESPONSE=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
               -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
               "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${TENANT}")
 
-            echo "$RESPONSE" > work/raw.txt
+            echo "$RESPONSE" > work_raw.txt
 
-            echo "====== RAW RESPONSE ======"
-            cat work/raw.txt
-            echo "=========================="
-
-            BODY=$(sed '$d' work/raw.txt)
-            STATUS=$(tail -n1 work/raw.txt | cut -d: -f2)
+            BODY=$(sed '$d' work_raw.txt)
+            STATUS=$(tail -n1 work_raw.txt | cut -d: -f2)
 
             echo "HTTP STATUS: $STATUS"
 
-            # ✅ Skip instead of fail
             if [ "$STATUS" != "200" ]; then
-              echo "⚠ Skipping tenant $TENANT due to API error"
+              echo "Skipping tenant due to API error"
               continue
             fi
 
-            echo "$BODY" > work/manifest.json
+            echo "$BODY" > manifest.json
 
-            if [ ! -s work/manifest.json ]; then
-              echo "⚠ Empty manifest for tenant $TENANT"
+            if [ ! -s manifest.json ]; then
+              echo "Empty manifest"
               continue
             fi
 
-            echo "=== VALIDATING JSON ==="
-            jq . work/manifest.json
+            jq . manifest.json
 
-            #
-            # ✅ Render using Python (controlled logic)
-            #
-            cat > render.py <<'PY'
-            import json, os, subprocess, glob
-            
-            tenant = os.environ["TENANT"]
-            
-            with open("manifest.json") as f:
-                data = json.load(f)
-            
-            apps = data.get("apps", [])
-            
-            if not apps:
-                print("No apps")
-                exit(0)
-            
-            for app in apps:
-                name = app["name"]
-                cfg = app.get("config", {})
-            
-                star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
-            
-                if not star_files:
-                    print("Missing .star:", name)
-                    continue
-            
-                star = star_files[0]
-                out_dir = f"out/{tenant}"
-                os.makedirs(out_dir, exist_ok=True)
-            
-                out_file = f"{out_dir}/{name}.webp"
-            
-                args = ["pixlet", "render", star]
-            
-                for k, v in cfg.items():
-                    if isinstance(v, bool):
-                        v = "True" if v else "False"
-                    args.append(f"{k}={v}")
-            
-                args.extend(["-o", out_file])
-            
-                print("Running:", " ".join(args))
-                subprocess.run(args, check=True)
-            'PY'
-            
-            python render.py
+            # Export the bash variable so the Python script can access it via os.environ
+            export TENANT
 
+            python3 - <<'PY'
+import json, os, subprocess, glob
+
+tenant = os.environ["TENANT"]
+with open("manifest.json") as f:
+    data = json.load(f)
+
+apps = data.get("apps", [])
+
+if not apps:
+    print("No apps")
+    exit(0)
+
+for app in apps:
+    name = app["name"]
+    cfg = app.get("config", {})
+
+    star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
+    if not star_files:
+        print("Missing .star:", name)
+        continue
+
+    star = star_files[0]
+    out_dir = f"out/{tenant}"
+    os.makedirs(out_dir, exist_ok=True)
+
+    out_file = f"{out_dir}/{name}.webp"
+
+    args = ["pixlet", "render", star]
+
+    for k, v in cfg.items():
+        if isinstance(v, bool):
+            v = "True" if v else "False"
+        args.append(f"{k}={v}")
+
+    args.extend(["-o", out_file])
+
+    print("Running:", " ".join(args))
+    subprocess.run(args, check=True)
+PY
 
           done
 
-      #
-      # ✅ Debug output
-      #
-      - name: Show generated files
+      - name: Show output
         run: |
-          echo "=== Generated files ==="
           find out -type f || true
 
-      #
-      # ✅ Checkout PRIVATE repo
-      #
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
@@ -174,33 +135,22 @@ jobs:
           token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}
           path: private-repo
 
-      #
-      # ✅ Copy rendered images
-      #
-      - name: Copy renders to private repo
+      - name: Copy outputs
         run: |
           mkdir -p private-repo/renders
-
           cp -r out/* private-repo/renders/ 2>/dev/null || true
 
-          echo "=== Files copied ==="
-          find private-repo/renders -type f || true
-
-      #
-      # ✅ Commit & push
-      #
-      - name: Commit and push
+      - name: Commit & push
         run: |
           cd private-repo
-
           git config user.name "pixlet-render-bot"
           git config user.email "actions@github.com"
 
           git add renders/
 
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No changes"
           else
-            git commit -m "Update rendered Pixlet WebP outputs"
+            git commit -m "Update renders"
             git push
           fi
