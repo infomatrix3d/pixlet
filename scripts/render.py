@@ -19,18 +19,31 @@ if not apps:
     print("No enabled apps to render")
     raise SystemExit(0)
 
+def has_placeholder(value):
+    if not isinstance(value, str):
+        return False
+    v = value.strip()
+    if not v:
+        return True
+    if v.endswith(".value") and "[" in v and "]" in v:
+        return True
+    return False
+
 for app in apps:
     name = app["name"]
     cfg = app.get("config", {}) or {}
+
+    if any(has_placeholder(v) for v in cfg.values()):
+        print(f"Skipping {name}: placeholder or blank config still present -> {cfg}")
+        continue
 
     print(f"--- Rendering app: {name} ---")
     print("Config:", cfg)
 
     star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
-
     if not star_files:
-      print(f"Missing .star file for app: {name} — skipping")
-      continue
+        print(f"Missing .star file for app: {name} — skipping")
+        continue
 
     star = star_files[0]
     out_dir = f"out/{tenant}"
