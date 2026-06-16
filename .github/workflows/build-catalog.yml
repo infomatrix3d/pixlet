@@ -1,0 +1,53 @@
+name: Build Tronbyt App Catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ✅ Checkout your repo (contains script + allowed list reference if needed)
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      # ✅ Clone private repo (contains allowed_apps.txt + output storage)
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          repository: infomatrix3d/pixletprivate
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: private-repo
+
+      # ✅ Clone Tidbyt community repo (shallow clone for speed)
+      - name: Clone community apps repo
+        run: |
+          git clone --depth=1 https://github.com/tidbyt/community.git
+
+      # ✅ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # ✅ Run catalog builder
+      - name: Build catalog
+        run: |
+          python scripts/build_catalog.py \
+            --community community \
+            --allowed private-repo/allowed_apps.txt \
+            --output private-repo/output
+
+      # ✅ Commit back to private repo
+      - name: Commit results
+        run: |
+          cd private-repo
+          git config user.name "catalog-bot"
+          git config user.email "actions@github.com"
+
+          git add output/
+          git commit -m "Update catalog" || echo "No changes"
+          git push
