@@ -95,7 +95,7 @@ jobs:
             jq . work/manifest.json
 
             # ✅ Call Python script (CLEAN approach)
-            TENANT=$TENANT python scripts/render.py
+            TENANT=$TENANT MANIFEST=work/manifest.json python scripts/render.py
           done
 
       # ✅ Show output
