@@ -24,16 +24,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout this repo (contains workflow + scripts/render.py)
+      # ✅ Checkout repo (contains scripts/render.py)
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Clone Tronbyt apps repo
-      - name: Clone Tronbyt apps
+      # ✅ Clone Tronbyt apps
+      - name: Clone Pixlet apps
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
 
-      # Install Pixlet (pinned version)
+      # ✅ Install Pixlet
       - name: Install Pixlet
         run: |
           curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
@@ -42,15 +42,15 @@ jobs:
           sudo mv pixlet /usr/local/bin/pixlet
           pixlet version
 
-      # Build tenant list
+      # ✅ Build tenant list
       - name: Build tenant list
         run: |
           START=${{ github.event.inputs.tenant_start }}
           END=${{ github.event.inputs.tenant_end }}
           echo "TENANTS=$(seq $START $END | tr '\n' ' ')" >> $GITHUB_ENV
 
-      # Render per tenant
-      - name: Render apps per tenant
+      # ✅ Render apps per tenant
+      - name: Render apps
         shell: bash
         run: |
           set -euo pipefail
@@ -78,32 +78,33 @@ jobs:
 
             echo "HTTP STATUS: $STATUS"
 
-            # Skip tenant if API call failed
             if [ "$STATUS" != "200" ]; then
-              echo "⚠ Skipping tenant ${TENANT} due to API error"
+              echo "⚠ Skipping tenant due to API error"
               continue
             fi
 
             echo "$BODY" > work/manifest.json
 
             if [ ! -s work/manifest.json ]; then
-              echo "⚠ Empty manifest for tenant ${TENANT}"
+              echo "⚠ Empty manifest"
               continue
             fi
 
             echo "=== VALIDATING JSON ==="
             jq . work/manifest.json > /dev/null
 
-            # Option A: pass manifest path via env var
+            # ✅ Pass manifest path to Python (Option A)
             TENANT="$TENANT" MANIFEST="work/manifest.json" python scripts/render.py
+
           done
 
-      # Show generated files
-      - name: Show generated files
+      # ✅ Show generated files
+      - name: Show outputs
         run: |
           echo "=== Generated files ==="
           find out -type f || true
 
+      # ✅ Checkout PRIVATE repo (FIXED WITH TOKEN)
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
@@ -111,19 +112,25 @@ jobs:
           token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}   # ✅ REQUIRED
           path: private-repo
 
-      # Copy rendered files
-      - name: Copy renders to private repo
+      # ✅ Fix GitHub auth edge case (recommended)
+      - name: Fix Git auth
+        run: |
+          git config --global --unset-all http.https://github.com/.extraheader || true
+
+      # ✅ Copy outputs
+      - name: Copy renders
         run: |
           mkdir -p private-repo/renders
           cp -r out/* private-repo/renders/ 2>/dev/null || true
 
-          echo "=== Files copied to private repo ==="
+          echo "=== Files copied ==="
           find private-repo/renders -type f || true
 
-      # Commit and push
+      # ✅ Commit + push
       - name: Commit & push
         run: |
           cd private-repo
+
           git config user.name "pixlet-render-bot"
           git config user.email "actions@github.com"
 
