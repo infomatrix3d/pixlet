@@ -108,7 +108,7 @@ jobs:
             #
             # ✅ Render using Python (controlled logic)
             #
-            python - <<PY
+            python - <<'PY'
             import json, os, subprocess, glob
             
             tenant = "$TENANT"
