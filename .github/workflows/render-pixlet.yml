@@ -1,4 +1,4 @@
-name: Render Pixlet Apps Private
+name: Render Pixlet Apps (Private Repo Only)
 
 on:
   workflow_dispatch:
