@@ -104,12 +104,11 @@ jobs:
           echo "=== Generated files ==="
           find out -type f || true
 
-      # Checkout private repo
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.PRIVATE_REPO_NAME }}
-          token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}
+          token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}   # ✅ REQUIRED
           path: private-repo
 
       # Copy rendered files
