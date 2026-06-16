@@ -108,31 +108,28 @@ jobs:
             #
             # ✅ Render using Python (controlled logic)
             #
-            python - <<'PY'
+            cat > render.py <<'PY'
             import json, os, subprocess, glob
             
-            tenant = "$TENANT"
+            tenant = os.environ["TENANT"]
             
-            with open("work/manifest.json") as f:
+            with open("manifest.json") as f:
                 data = json.load(f)
             
             apps = data.get("apps", [])
             
             if not apps:
-                print("No enabled apps for tenant", tenant)
+                print("No apps")
                 exit(0)
             
             for app in apps:
                 name = app["name"]
                 cfg = app.get("config", {})
             
-                print(f"Rendering {name} for tenant {tenant}")
-                print("Config:", cfg)
-            
                 star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
             
                 if not star_files:
-                    print("No .star file found, skipping:", name)
+                    print("Missing .star:", name)
                     continue
             
                 star = star_files[0]
@@ -153,6 +150,9 @@ jobs:
                 print("Running:", " ".join(args))
                 subprocess.run(args, check=True)
             PY
+            
+            python render.py
+
 
           done
 
