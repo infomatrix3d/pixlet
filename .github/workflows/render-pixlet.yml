@@ -12,31 +12,23 @@ on:
         required: true
         default: "1010"
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes
+    - cron: "*/30 * * * *"
 
 permissions:
   contents: read
 
 env:
-  # Public repo contains this file with one app folder name per line
-  ALLOWED_APPS_FILE: allowed_apps.txt
-
-  # Cloudflare Worker base URL, for example:
-  # https://pixlet-config-portal.your-subdomain.workers.dev
   CF_WORKER_BASE_URL: ${{ secrets.CF_WORKER_BASE_URL }}
 
 jobs:
   plan:
-    name: Build render matrix
+    name: Build tenant matrix
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
 
     steps:
-      - name: Checkout public repo
-        uses: actions/checkout@v4
-
-      - name: Build matrix JSON from tenant range + app list
+      - name: Build tenant matrix JSON
         id: build-matrix
         shell: bash
         run: |
@@ -48,22 +40,12 @@ jobs:
 
           start = int(os.environ["START"])
           end = int(os.environ["END"])
-          apps_file = os.environ["ALLOWED_APPS_FILE"]
-
-          apps = []
-          with open(apps_file, "r", encoding="utf-8") as f:
-              for line in f:
-                  line = line.strip()
-                  if line and not line.startswith("#"):
-                      apps.append(line)
 
           matrix = {"include": []}
           for tenant in range(start, end + 1):
-              for app in apps:
-                  matrix["include"].append({
-                      "tenant": str(tenant),
-                      "app": app
-                  })
+              matrix["include"].append({
+                  "tenant": str(tenant)
+              })
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
               out.write("matrix=" + json.dumps(matrix) + "\n")
@@ -71,10 +53,9 @@ jobs:
         env:
           START: ${{ github.event.inputs.tenant_start || '1001' }}
           END: ${{ github.event.inputs.tenant_end || '1010' }}
-          ALLOWED_APPS_FILE: ${{ env.ALLOWED_APPS_FILE }}
 
   render:
-    name: Render ${{ matrix.tenant }} / ${{ matrix.app }}
+    name: Render tenant ${{ matrix.tenant }}
     needs: plan
     runs-on: ubuntu-latest
     strategy:
@@ -93,110 +74,97 @@ jobs:
       - name: Install Pixlet
         shell: bash
         run: |
-          # Example install path – adjust if you pin a specific release in your repo
           curl -L -o pixlet.tar.gz https://github.com/tronbyt/pixlet/releases/latest/download/pixlet_linux_amd64.tar.gz
           tar -xzf pixlet.tar.gz
           chmod +x pixlet
           sudo mv pixlet /usr/local/bin/pixlet
           pixlet version || true
 
-      - name: Fetch config from Cloudflare Worker
-        id: fetch-config
+      - name: Fetch enabled app manifest for tenant
         shell: bash
         run: |
-          mkdir -p work
+          mkdir -p work out/${{ matrix.tenant }}
+
           curl -sS \
             -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
-            "${CF_WORKER_BASE_URL}/internal/config?tenant=${{ matrix.tenant }}&app=${{ matrix.app }}" \
-            -o work/config.json
+            "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${{ matrix.tenant }}" \
+            -o work/manifest.json
 
-          echo "Fetched config:"
-          cat work/config.json
+          echo "Manifest:"
+          cat work/manifest.json
 
-      - name: Decide if render is enabled
-        id: enabled-check
-        shell: bash
-        run: |
-          ENABLED=$(jq -r '.enabled // true' work/config.json)
-          echo "enabled=$ENABLED" >> "$GITHUB_OUTPUT"
-
-          if [ "$ENABLED" != "true" ]; then
-            echo "Render disabled for tenant=${{ matrix.tenant }}, app=${{ matrix.app }}"
-          fi
-
-      - name: Find .star file
-        if: steps.enabled-check.outputs.enabled == 'true'
-        id: starfile
-        shell: bash
-        run: |
-          STAR_FILE=$(find "tronbyt-apps/apps/${{ matrix.app }}" -maxdepth 1 -type f -name "*.star" | head -n1)
-
-          if [ -z "$STAR_FILE" ]; then
-            echo "No .star file found for app=${{ matrix.app }}"
-            exit 1
-          fi
-
-          echo "star_file=$STAR_FILE" >> "$GITHUB_OUTPUT"
-          echo "Using $STAR_FILE"
-
-      - name: Convert JSON settings to Pixlet CLI args
-        if: steps.enabled-check.outputs.enabled == 'true'
-        id: pixlet-args
+      - name: Render all enabled apps for tenant
         shell: bash
         run: |
           python - <<'PY'
-          import json, os
+          import json
+          import os
+          import subprocess
+          import glob
+          import shlex
 
-          with open("work/config.json", "r", encoding="utf-8") as f:
-              payload = json.load(f)
+          tenant = os.environ["TENANT"]
+          manifest_file = "work/manifest.json"
+          apps_root = "tronbyt-apps/apps"
+          out_root = f"out/{tenant}"
 
-          cfg = payload.get("config", {}) or {}
+          with open(manifest_file, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          apps = data.get("apps", [])
+          if not apps:
+              print(f"No enabled apps for tenant {tenant}")
+              raise SystemExit(0)
 
           def fmt(v):
               if isinstance(v, bool):
                   return "True" if v else "False"
               if isinstance(v, (int, float)):
                   return str(v)
-              # strings stay JSON-quoted to preserve spaces/special chars
               return json.dumps(v)
 
-          args = " ".join(f"{k}={fmt(v)}" for k, v in cfg.items())
+          for app in apps:
+              app_name = app["name"]
+              cfg = app.get("config", {}) or {}
 
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"args={args}\n")
+              app_dir = os.path.join(apps_root, app_name)
+              star_files = glob.glob(os.path.join(app_dir, "*.star"))
+
+              if not star_files:
+                  print(f"Skipping {app_name}: no .star file found in {app_dir}")
+                  continue
+
+              star_file = star_files[0]
+              output_file = os.path.join(out_root, f"{app_name}.webp")
+
+              args = ["/usr/local/bin/pixlet", "render", star_file]
+              for k, v in cfg.items():
+                  args.append(f"{k}={fmt(v)}")
+              args.extend(["-o", output_file])
+
+              print("Running:", " ".join(shlex.quote(a) for a in args))
+              subprocess.run(args, check=True)
+
           PY
+        env:
+          TENANT: ${{ matrix.tenant }}
 
-      - name: Render WebP
-        if: steps.enabled-check.outputs.enabled == 'true'
-        shell: bash
-        run: |
-          mkdir -p out/${{ matrix.tenant }}
-          OUTPUT_FILE="out/${{ matrix.tenant }}/${{ matrix.app }}.webp"
-
-          echo "Rendering to $OUTPUT_FILE"
-          pixlet render "${{ steps.starfile.outputs.star_file }}" ${{ steps.pixlet-args.outputs.args }} -o "$OUTPUT_FILE"
-
-          ls -l "$OUTPUT_FILE"
-
-      - name: Upload render artifact
-        if: steps.enabled-check.outputs.enabled == 'true'
+      - name: Upload tenant renders
         uses: actions/upload-artifact@v4
         with:
-          name: render-${{ matrix.tenant }}-${{ matrix.app }}
-          path: out/${{ matrix.tenant }}/${{ matrix.app }}.webp
+          name: tenant-${{ matrix.tenant }}-renders
+          path: out/${{ matrix.tenant }}
 
   publish:
     name: Publish renders to private repo
     needs: render
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
-      - name: Download all render artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: published-artifacts
+          path: downloaded-renders
 
       - name: Checkout private repo
         uses: actions/checkout@v4
@@ -210,20 +178,12 @@ jobs:
         run: |
           mkdir -p private-repo/renders
 
-          find published-artifacts -type f -name "*.webp" | while read -r file; do
-            # artifact path structure contains tenant/app.webp already
-            # example: published-artifacts/render-1001-weather/1001/weather.webp
-            tenant_dir=$(basename "$(dirname "$file")")
+          find downloaded-renders -type f -name "*.webp" | while read -r file; do
+            tenant=$(echo "$file" | grep -oE '/[0-9]+/' | head -n1 | tr -d '/')
             app_file=$(basename "$file")
 
-            # Handle both flattened and nested paths robustly
-            # If tenant_dir isn't numeric, inspect source path for numeric folder
-            if ! [[ "$tenant_dir" =~ ^[0-9]+$ ]]; then
-              tenant_dir=$(echo "$file" | grep -oE '/[0-9]+/' | head -n1 | tr -d '/')
-            fi
-
-            mkdir -p "private-repo/renders/${tenant_dir}"
-            cp "$file" "private-repo/renders/${tenant_dir}/${app_file}"
+            mkdir -p "private-repo/renders/${tenant}"
+            cp "$file" "private-repo/renders/${tenant}/${app_file}"
           done
 
           find private-repo/renders -type f | sort
@@ -238,7 +198,7 @@ jobs:
           git add renders/
 
           if git diff --cached --quiet; then
-            echo "No render changes to publish"
+            echo "No changes to publish"
           else
             git commit -m "Update rendered Pixlet WebP outputs"
             git push
