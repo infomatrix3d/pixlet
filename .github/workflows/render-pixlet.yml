@@ -24,14 +24,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      #
+      # ✅ Checkout repo (workflow only, no outputs stored here)
+      #
       - name: Checkout public repo
         uses: actions/checkout@v4
 
+      #
+      # ✅ Clone Pixlet apps
+      #
       - name: Clone Tronbyt apps repo
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
 
-      # ✅ Stable Pixlet install
+      #
+      # ✅ Install Pixlet (stable version)
+      #
       - name: Install Pixlet
         run: |
           curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
@@ -40,14 +48,19 @@ jobs:
           sudo mv pixlet /usr/local/bin/pixlet
           pixlet version
 
+      #
+      # ✅ Build tenant list
+      #
       - name: Build tenant list
-        id: tenants
         run: |
           START=${{ github.event.inputs.tenant_start }}
           END=${{ github.event.inputs.tenant_end }}
 
           echo "TENANTS=$(seq $START $END | tr '\n' ' ')" >> $GITHUB_ENV
 
+      #
+      # ✅ Render per tenant (DEBUG SAFE)
+      #
       - name: Render apps per tenant
         run: |
           set -euo pipefail
@@ -55,9 +68,9 @@ jobs:
           mkdir -p out
 
           for TENANT in $TENANTS; do
-            echo "========================"
+            echo "=================================="
             echo "Processing tenant: $TENANT"
-            echo "========================"
+            echo "=================================="
 
             mkdir -p work
 
@@ -76,72 +89,84 @@ jobs:
 
             echo "HTTP STATUS: $STATUS"
 
+            # ✅ Skip instead of fail
             if [ "$STATUS" != "200" ]; then
-              echo "❌ Skipping tenant $TENANT due to API error"
+              echo "⚠ Skipping tenant $TENANT due to API error"
               continue
             fi
 
             echo "$BODY" > work/manifest.json
 
             if [ ! -s work/manifest.json ]; then
-              echo "⚠ Empty config for tenant $TENANT"
+              echo "⚠ Empty manifest for tenant $TENANT"
               continue
             fi
 
+            echo "=== VALIDATING JSON ==="
             jq . work/manifest.json
 
+            #
+            # ✅ Render using Python (controlled logic)
+            #
             python - <<PY
-import json, os, subprocess, glob
-
-tenant = "$TENANT"
-
-with open("work/manifest.json") as f:
-    data = json.load(f)
-
-apps = data.get("apps", [])
-
-if not apps:
-    print("No enabled apps for tenant", tenant)
-    exit(0)
-
-for app in apps:
-    name = app["name"]
-    cfg = app.get("config", {})
-
-    print(f"Rendering {name} for tenant {tenant}")
-
-    star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
-
-    if not star_files:
-        print("No .star file found, skipping:", name)
-        continue
-
-    star = star_files[0]
-    out_dir = f"out/{tenant}"
-    os.makedirs(out_dir, exist_ok=True)
-    out_file = f"{out_dir}/{name}.webp"
-
-    args = ["pixlet", "render", star]
-
-    for k, v in cfg.items():
-        if isinstance(v, bool):
-            v = "True" if v else "False"
-        args.append(f"{k}={v}")
-
-    args.extend(["-o", out_file])
-
-    print("Running:", " ".join(args))
-    subprocess.run(args, check=True)
-PY
+          import json, os, subprocess, glob
+          
+          tenant = "$TENANT"
+          
+          with open("work/manifest.json") as f:
+              data = json.load(f)
+          
+          apps = data.get("apps", [])
+          
+          if not apps:
+              print("No enabled apps for tenant", tenant)
+              exit(0)
+          
+          for app in apps:
+              name = app["name"]
+              cfg = app.get("config", {})
+          
+              print(f"Rendering {name} for tenant {tenant}")
+              print("Config:", cfg)
+          
+              star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
+          
+              if not star_files:
+                  print("No .star file found, skipping:", name)
+                  continue
+          
+              star = star_files[0]
+              out_dir = f"out/{tenant}"
+              os.makedirs(out_dir, exist_ok=True)
+          
+              out_file = f"{out_dir}/{name}.webp"
+          
+              args = ["pixlet", "render", star]
+          
+              for k, v in cfg.items():
+                  if isinstance(v, bool):
+                      v = "True" if v else "False"
+                  args.append(f"{k}={v}")
+          
+              args.extend(["-o", out_file])
+          
+              print("Running:", " ".join(args))
+              subprocess.run(args, check=True)
+          PY
 
           done
 
-      - name: Show outputs
+      #
+      # ✅ Debug output
+      #
+      - name: Show generated files
         run: |
-          echo "Generated files:"
+          echo "=== Generated files ==="
           find out -type f || true
 
+      #
       # ✅ Checkout PRIVATE repo
+      #
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
@@ -149,18 +174,22 @@ PY
           token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}
           path: private-repo
 
-      # ✅ Copy outputs to private repo
-      - name: Copy to private repo
+      #
+      # ✅ Copy rendered images
+      #
+      - name: Copy renders to private repo
         run: |
           mkdir -p private-repo/renders
 
           cp -r out/* private-repo/renders/ 2>/dev/null || true
 
-          echo "Files in private repo:"
+          echo "=== Files copied ==="
           find private-repo/renders -type f || true
 
-      # ✅ Commit + push
-      - name: Commit & push to private repo
+      #
+      # ✅ Commit & push
+      #
+      - name: Commit and push
         run: |
           cd private-repo
 
