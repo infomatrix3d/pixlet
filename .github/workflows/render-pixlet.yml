@@ -149,7 +149,7 @@ jobs:
             
                 print("Running:", " ".join(args))
                 subprocess.run(args, check=True)
-            PY
+            'PY'
             
             python render.py
 
