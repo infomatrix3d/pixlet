@@ -109,50 +109,50 @@ jobs:
             # ✅ Render using Python (controlled logic)
             #
             python - <<PY
-          import json, os, subprocess, glob
-          
-          tenant = "$TENANT"
-          
-          with open("work/manifest.json") as f:
-              data = json.load(f)
-          
-          apps = data.get("apps", [])
-          
-          if not apps:
-              print("No enabled apps for tenant", tenant)
-              exit(0)
-          
-          for app in apps:
-              name = app["name"]
-              cfg = app.get("config", {})
-          
-              print(f"Rendering {name} for tenant {tenant}")
-              print("Config:", cfg)
-          
-              star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
-          
-              if not star_files:
-                  print("No .star file found, skipping:", name)
-                  continue
-          
-              star = star_files[0]
-              out_dir = f"out/{tenant}"
-              os.makedirs(out_dir, exist_ok=True)
-          
-              out_file = f"{out_dir}/{name}.webp"
-          
-              args = ["pixlet", "render", star]
-          
-              for k, v in cfg.items():
-                  if isinstance(v, bool):
-                      v = "True" if v else "False"
-                  args.append(f"{k}={v}")
-          
-              args.extend(["-o", out_file])
-          
-              print("Running:", " ".join(args))
-              subprocess.run(args, check=True)
-          PY
+            import json, os, subprocess, glob
+            
+            tenant = "$TENANT"
+            
+            with open("work/manifest.json") as f:
+                data = json.load(f)
+            
+            apps = data.get("apps", [])
+            
+            if not apps:
+                print("No enabled apps for tenant", tenant)
+                exit(0)
+            
+            for app in apps:
+                name = app["name"]
+                cfg = app.get("config", {})
+            
+                print(f"Rendering {name} for tenant {tenant}")
+                print("Config:", cfg)
+            
+                star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
+            
+                if not star_files:
+                    print("No .star file found, skipping:", name)
+                    continue
+            
+                star = star_files[0]
+                out_dir = f"out/{tenant}"
+                os.makedirs(out_dir, exist_ok=True)
+            
+                out_file = f"{out_dir}/{name}.webp"
+            
+                args = ["pixlet", "render", star]
+            
+                for k, v in cfg.items():
+                    if isinstance(v, bool):
+                        v = "True" if v else "False"
+                    args.append(f"{k}={v}")
+            
+                args.extend(["-o", out_file])
+            
+                print("Running:", " ".join(args))
+                subprocess.run(args, check=True)
+            PY
 
           done
 
