@@ -1,0 +1,96 @@
+name: Generate Preview Images
+
+on:
+  workflow_dispatch:   # ✅ manual trigger (recommended)
+  # push:
+  #   branches: [main]  # optional auto trigger
+
+permissions:
+  contents: write
+
+jobs:
+  generate-previews:
+    runs-on: ubuntu-latest
+
+    steps:
+      #
+      # ✅ Checkout your repo
+      #
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      #
+      # ✅ Clone Tronbyt apps
+      #
+      - name: Clone Tronbyt apps repo
+        run: |
+          git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
+
+      #
+      # ✅ Install Pixlet
+      #
+      - name: Install Pixlet
+        run: |
+          curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
+          tar -xvf pixlet_v0.53.0_linux-amd64.tar.gz
+          chmod +x pixlet
+          sudo mv pixlet /usr/local/bin/pixlet
+          pixlet version
+
+      #
+      # ✅ Create previews folder
+      #
+      - name: Prepare output folder
+        run: |
+          mkdir -p previews
+
+      #
+      # ✅ Render ALL apps with default config
+      #
+      - name: Render preview images
+        run: |
+          set -e
+
+          for dir in tronbyt-apps/apps/*; do
+            if [ -d "$dir" ]; then
+              app=$(basename "$dir")
+              star_file=$(find "$dir" -name "*.star" | head -n 1)
+
+              if [ -z "$star_file" ]; then
+                echo "Skipping $app (no .star file)"
+                continue
+              fi
+
+              echo "Rendering preview for $app"
+
+              # ✅ render WITHOUT parameters (important)
+              pixlet render "$star_file" -o "previews/${app}.webp" \
+                || echo "⚠ Skipping $app (render failed)"
+
+            fi
+          done
+
+      #
+      # ✅ Show generated previews
+      #
+      - name: List previews
+        run: |
+          echo "Generated previews:"
+          ls -l previews || true
+
+      #
+      # ✅ Commit and push
+      #
+      - name: Commit & push previews
+        run: |
+          git config user.name "preview-bot"
+          git config user.email "actions@github.com"
+
+          git add previews/
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update preview images"
+            git push
+          fi
