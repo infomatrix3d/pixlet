@@ -1,4 +1,4 @@
-name: Render Pixlet Apps (Debug Safe)
+name: Render Pixlet Apps Private
 
 on:
   workflow_dispatch:
@@ -20,167 +20,158 @@ env:
   CF_WORKER_BASE_URL: ${{ secrets.CF_WORKER_BASE_URL }}
 
 jobs:
-  plan:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.build-matrix.outputs.matrix }}
-
-    steps:
-      - name: Build tenant matrix
-        id: build-matrix
-        run: |
-          START="${{ github.event.inputs.tenant_start }}"
-          END="${{ github.event.inputs.tenant_end }}"
-
-          python - <<'PY'
-          import json, os
-
-          start = int(os.environ["START"])
-          end = int(os.environ["END"])
-
-          matrix = {"include": []}
-          for t in range(start, end + 1):
-              matrix["include"].append({"tenant": str(t)})
-
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write("matrix=" + json.dumps(matrix))
-          PY
-        env:
-          START: ${{ github.event.inputs.tenant_start }}
-          END: ${{ github.event.inputs.tenant_end }}
-
   render:
-    needs: plan
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout public repo
+        uses: actions/checkout@v4
 
-      - name: Clone apps repo
+      - name: Clone Tronbyt apps repo
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git tronbyt-apps
 
-      # ✅ FIXED Pixlet install
+      # ✅ Stable Pixlet install
       - name: Install Pixlet
         run: |
-          curl -LO "https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz"
+          curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
           tar -xvf pixlet_v0.53.0_linux-amd64.tar.gz
           chmod +x pixlet
           sudo mv pixlet /usr/local/bin/pixlet
           pixlet version
 
-      - name: Fetch manifest (DEBUG SAFE)
+      - name: Build tenant list
+        id: tenants
+        run: |
+          START=${{ github.event.inputs.tenant_start }}
+          END=${{ github.event.inputs.tenant_end }}
+
+          echo "TENANTS=$(seq $START $END | tr '\n' ' ')" >> $GITHUB_ENV
+
+      - name: Render apps per tenant
         run: |
           set -euo pipefail
 
-          mkdir -p work out/${{ matrix.tenant }}
+          mkdir -p out
 
-          echo "=== Calling Worker ==="
+          for TENANT in $TENANTS; do
+            echo "========================"
+            echo "Processing tenant: $TENANT"
+            echo "========================"
 
-          RESPONSE=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
-            -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
-            "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${{ matrix.tenant }}")
+            mkdir -p work
 
-          echo "$RESPONSE" > work/raw.txt
+            RESPONSE=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
+              -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
+              "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${TENANT}")
 
-          echo "====== RAW RESPONSE ======"
-          cat work/raw.txt
-          echo "=========================="
+            echo "$RESPONSE" > work/raw.txt
 
-          BODY=$(sed '$d' work/raw.txt)
-          STATUS=$(tail -n1 work/raw.txt | cut -d: -f2)
+            echo "====== RAW RESPONSE ======"
+            cat work/raw.txt
+            echo "=========================="
 
-          echo "HTTP STATUS: $STATUS"
+            BODY=$(sed '$d' work/raw.txt)
+            STATUS=$(tail -n1 work/raw.txt | cut -d: -f2)
 
-          echo "$BODY" > work/manifest.json
+            echo "HTTP STATUS: $STATUS"
 
-          # ✅ Fail clearly if error
-          if [ "$STATUS" != "200" ]; then
-            echo "❌ Worker returned HTTP $STATUS"
-            exit 1
-          fi
+            if [ "$STATUS" != "200" ]; then
+              echo "❌ Skipping tenant $TENANT due to API error"
+              continue
+            fi
 
-          if [ ! -s work/manifest.json ]; then
-            echo "❌ Empty manifest file"
-            exit 1
-          fi
+            echo "$BODY" > work/manifest.json
 
-          echo "=== VALIDATING JSON ==="
-          jq . work/manifest.json
+            if [ ! -s work/manifest.json ]; then
+              echo "⚠ Empty config for tenant $TENANT"
+              continue
+            fi
 
-      - name: Render apps (DEBUG SAFE)
-        run: |
-          set -euo pipefail
+            jq . work/manifest.json
 
-          python - <<'PY'
-          import json, os, subprocess, glob
+            python - <<PY
+import json, os, subprocess, glob
 
-          tenant = os.environ["TENANT"]
+tenant = "$TENANT"
 
-          with open("work/manifest.json", "r") as f:
-              raw = f.read().strip()
+with open("work/manifest.json") as f:
+    data = json.load(f)
 
-          print("=== RAW JSON ===")
-          print(raw)
+apps = data.get("apps", [])
 
-          if not raw:
-              print("No manifest data, skipping tenant")
-              exit(0)
+if not apps:
+    print("No enabled apps for tenant", tenant)
+    exit(0)
 
-          data = json.loads(raw)
+for app in apps:
+    name = app["name"]
+    cfg = app.get("config", {})
 
-          apps = data.get("apps", [])
-          print("Apps to render:", apps)
+    print(f"Rendering {name} for tenant {tenant}")
 
-          if not apps:
-              print("No enabled apps, skipping")
-              exit(0)
+    star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
 
-          for app in apps:
-              app_name = app["name"]
-              cfg = app.get("config", {})
+    if not star_files:
+        print("No .star file found, skipping:", name)
+        continue
 
-              print(f"--- Processing {app_name} ---")
-              print("Config:", cfg)
+    star = star_files[0]
+    out_dir = f"out/{tenant}"
+    os.makedirs(out_dir, exist_ok=True)
+    out_file = f"{out_dir}/{name}.webp"
 
-              app_dir = f"tronbyt-apps/apps/{app_name}"
-              star_files = glob.glob(app_dir + "/*.star")
+    args = ["pixlet", "render", star]
 
-              if not star_files:
-                  print("No .star file found, skipping")
-                  continue
+    for k, v in cfg.items():
+        if isinstance(v, bool):
+            v = "True" if v else "False"
+        args.append(f"{k}={v}")
 
-              star_file = star_files[0]
-              out_file = f"out/{tenant}/{app_name}.webp"
+    args.extend(["-o", out_file])
 
-              os.makedirs(f"out/{tenant}", exist_ok=True)
+    print("Running:", " ".join(args))
+    subprocess.run(args, check=True)
+PY
 
-              # Build args
-              args = ["pixlet", "render", star_file]
-
-              for k, v in cfg.items():
-                  if isinstance(v, bool):
-                      v = "True" if v else "False"
-                  args.append(f"{k}={v}")
-
-              args.extend(["-o", out_file])
-
-              print("Running:", " ".join(args))
-
-              subprocess.run(args, check=True)
-          PY
-        env:
-          TENANT: ${{ matrix.tenant }}
+          done
 
       - name: Show outputs
         run: |
-          echo "=== Generated files ==="
+          echo "Generated files:"
           find out -type f || true
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      # ✅ Checkout PRIVATE repo
+      - name: Checkout private repo
+        uses: actions/checkout@v4
         with:
-          name: tenant-${{ matrix.tenant }}
-          path: out/${{ matrix.tenant }}
+          repository: ${{ secrets.PRIVATE_REPO_NAME }}
+          token: ${{ secrets.PRIVATE_REPO_PUSH_TOKEN }}
+          path: private-repo
+
+      # ✅ Copy outputs to private repo
+      - name: Copy to private repo
+        run: |
+          mkdir -p private-repo/renders
+
+          cp -r out/* private-repo/renders/ 2>/dev/null || true
+
+          echo "Files in private repo:"
+          find private-repo/renders -type f || true
+
+      # ✅ Commit + push
+      - name: Commit & push to private repo
+        run: |
+          cd private-repo
+
+          git config user.name "pixlet-render-bot"
+          git config user.email "actions@github.com"
+
+          git add renders/
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update rendered Pixlet WebP outputs"
+            git push
+          fi
