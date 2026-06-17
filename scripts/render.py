@@ -47,8 +47,12 @@ for app in apps:
     name = app["name"]
     cfg = app.get("config", {}) or {}
 
+    # ✅ NEW: size support
+    size = str(app.get("size", "1"))  # default fallback
+
     print(f"\n--- Rendering app: {name} ---")
     print("Raw config:", cfg)
+    print("Size:", size)
 
     # ✅ Find .star file
     star_files = glob.glob(f"tronbyt-apps/apps/{name}/*.star")
@@ -65,7 +69,16 @@ for app in apps:
     out_file = f"{out_dir}/{name}.webp"
 
     # ✅ Base command
-    args = ["pixlet", "render", star]
+    args = ["pixlet", "render"]
+
+    # ✅ Apply size flag
+    if size in ["1", "2"]:
+        args.append(f"-{size}")
+    else:
+        print(f"⚠️ Invalid size '{size}', defaulting to -1")
+        args.append("-1")
+
+    args.append(star)
 
     # ✅ Build ONLY valid params
     valid_params = []
