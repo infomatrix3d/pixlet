@@ -1,4 +1,4 @@
 
-Pixlet produced WebP - Git Actions workflow. 
+Pixlet produced WebP 
 
 www.infomatrix3d.com
