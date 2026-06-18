@@ -68,10 +68,9 @@ jobs:
               #"${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${TENANT}")
               
             RESPONSE=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
-              -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
-              -H "Cache-Control: no-cache" \
-              "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${TENANT}&ts=$(date +%s)")
-
+            -H "x-api-key: ${{ secrets.CF_INTERNAL_API_KEY }}" \
+            -H "Cache-Control: no-cache" \
+            "${CF_WORKER_BASE_URL}/internal/render-manifest?tenant=${TENANT}&ts=$(date +%s)")
 
             echo "$RESPONSE" > work/raw.txt
 
