@@ -46,7 +46,7 @@
       "config": {
         "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
         "units": "metric",
-        "showthreeday": true,
+        "showthreeday": false,
         "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": false
