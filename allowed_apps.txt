@@ -1,4 +1,3 @@
-nhlscores
 nhlstandings
 fuzzyclock
 weather
