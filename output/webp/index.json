@@ -227,7 +227,7 @@
       "name": "est",
       "file": "output/webp/fuzzyclock/est.webp",
       "config": {
-        "location": "Canada/Toronto"
+        "location": "America/New_York"
       },
       "is_2x": false
     },
@@ -235,7 +235,7 @@
       "name": "est_2x",
       "file": "output/webp/fuzzyclock/est_2x.webp",
       "config": {
-        "location": "Canada/Toronto"
+        "location": "America/New_York"
       },
       "is_2x": true
     }
