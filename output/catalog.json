@@ -1,52 +1,6 @@
 {
   "apps": [
     {
-      "name": "nhlscores",
-      "configSchema": {
-        "location": {
-          "type": "string",
-          "label": "Location",
-          "description": "Location for which to display time."
-        },
-        "selectedTeam": {
-          "type": "string",
-          "label": "Team Focus",
-          "description": "Only show scores for selected team.",
-          "default": "teamOptions[0].value"
-        },
-        "rotationSpeed": {
-          "type": "string",
-          "label": "Rotation Speed",
-          "description": "Amount of seconds each score is displayed.",
-          "default": "rotationOptions[2].value"
-        },
-        "displayType": {
-          "type": "string",
-          "label": "Display Type",
-          "description": "Style of how the scores are displayed.",
-          "default": "displayOptions[0].value"
-        },
-        "pregameDisplay": {
-          "type": "string",
-          "label": "Pre-Game",
-          "description": "What to display in the score area if the game hasn't started.",
-          "default": "pregameOptions[0].value"
-        },
-        "displayTop": {
-          "type": "string",
-          "label": "Top Display",
-          "description": "A toggle of what to display on the top shelf.",
-          "default": "displayTopOptions[0].value"
-        },
-        "displayTimeColor": {
-          "type": "string",
-          "label": "Top Display Color",
-          "description": "Select which color you want the top display to be.",
-          "default": "colorOptions[5].value"
-        }
-      }
-    },
-    {
       "name": "nhlstandings",
       "configSchema": {
         "location": {
