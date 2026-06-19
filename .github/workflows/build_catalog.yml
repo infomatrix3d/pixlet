@@ -28,19 +28,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ✅ Install Pixlet (FAST - no Go)
+      # ✅ Install Pixlet 
 
-      - name: Install Tronbyt Pixlet
-        shell: bash
+      - name: Install Pixlet
         run: |
-          set -euo pipefail
-
-          PIXLET_VERSION="0.52.0"
-          curl -L "https://github.com/tronbyt/pixlet/releases/download/v${PIXLET_VERSION}/pixlet_v${PIXLET_VERSION}_linux_amd64.tar.gz" -o pixlet.tar.gz
-          tar -xzf pixlet.tar.gz
+          curl -LO https://github.com/tronbyt/pixlet/releases/download/v0.53.0/pixlet_v0.53.0_linux-amd64.tar.gz
+          tar -xvf pixlet_v0.53.0_linux-amd64.tar.gz
           chmod +x pixlet
           sudo mv pixlet /usr/local/bin/pixlet
-          pixlet version || pixlet --help
+          pixlet version
           
 
       # ✅ Cache rendered WEBP output
