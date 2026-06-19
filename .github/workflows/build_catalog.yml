@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          RAW_BASE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main"
+          RAW_BASE_URL="https://infomatrix3d.github.io/pixlet/output"
 
           cat <<'EOF' > index.template.html
           <!DOCTYPE html>
