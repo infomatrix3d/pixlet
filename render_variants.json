@@ -4,7 +4,8 @@
       "name": "toronto_metric",
       "config": {
         "city": "Toronto",
-        "units": "metric"
+        "units": "metric",
+        "api_v3": "$WEATHER_API_KEY"
       },
       "is_2x": true
     },
@@ -12,7 +13,8 @@
       "name": "new_york_imperial_2x",
       "config": {
         "city": "New York",
-        "units": "imperial"
+        "units": "imperial",
+        "api_v3": "$WEATHER_API_KEY"
       },
       "is_2x": true
     }
