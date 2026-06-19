@@ -11,7 +11,7 @@
       "is_2x": true
     }
   ],
-    "weather": [
+  "weather": [
     {
       "name": "toronto_metric",
       "config": {
@@ -23,7 +23,7 @@
       "is_2x": false
     }
   ],
-    "fuzzyclock": [
+  "fuzzyclock": [
     {
       "name": "EST",
       "config": {
@@ -32,7 +32,7 @@
       "is_2x": false
     }
   ],
-    "fuzzyclock": [
+  "fuzzyclock": [
     {
       "name": "EST_2x",
       "config": {
@@ -41,7 +41,7 @@
       "is_2x": true
     }
   ],
-      "fuzzyclock": [
+  "fuzzyclock": [
     {
       "name": "MST",
       "config": {
@@ -50,7 +50,7 @@
       "is_2x": false
     }
   ],
-    "fuzzyclock": [
+  "fuzzyclock": [
     {
       "name": "MST_2x",
       "config": {
