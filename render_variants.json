@@ -22,6 +22,41 @@
       },
       "is_2x": false
     }
-  ]
-
+  ],
+    "fuzzyclock": [
+    {
+      "name": "EST",
+      "config": {
+        "location": "America/Toronto",
+      },
+      "is_2x": false
+    }
+  ],
+    "fuzzyclock": [
+    {
+      "name": "EST_2x",
+      "config": {
+        "location": "America/Toronto",
+      },
+      "is_2x": true
+    }
+  ],
+      "fuzzyclock": [
+    {
+      "name": "MST",
+      "config": {
+        "location": "America/Phoenix",
+      },
+      "is_2x": false
+    }
+  ],
+    "fuzzyclock": [
+    {
+      "name": "MST_2x",
+      "config": {
+        "location": "America/Phoenix",
+      },
+      "is_2x": true
+    }
+  ],
 }
