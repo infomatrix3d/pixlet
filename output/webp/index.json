@@ -234,7 +234,8 @@
       "name": "est",
       "file": "output/webp/fuzzyclock/est.webp",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "dialect": "en-US"
       },
       "is_2x": false
     },
@@ -242,7 +243,8 @@
       "name": "est_2x",
       "file": "output/webp/fuzzyclock/est_2x.webp",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "dialect": "en-US"
       },
       "is_2x": true
     }
