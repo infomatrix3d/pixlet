@@ -1,0 +1,93 @@
+name: Build Tronbyt Catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Clone Tronbyt apps repo
+        run: |
+          git clone --depth=1 https://github.com/tronbyt/apps.git
+
+      - name: List available apps
+        run: |
+          ls -la apps/apps
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install Pixlet
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libwebp-dev
+          go install github.com/tronbyt/pixlet@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          "$HOME/go/bin/pixlet" version || "$HOME/go/bin/pixlet" --help
+
+      - name: Generate catalog
+        run: |
+          python scripts/build_catalog.py \
+            --community apps \
+            --allowed allowed_apps.txt \
+            --output output
+
+      - name: Render WEBP files
+        env:
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          STOCKS_API_TOKEN: ${{ secrets.STOCKS_API_TOKEN }}
+        run: |
+          python scripts/render_webp.py \
+            --community apps/apps \
+            --allowed allowed_apps.txt \
+            --variants render_variants.json \
+            --output output/webp \
+            --continue-on-error
+
+      - name: Create index.html
+        run: |
+          RAW_BASE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main"
+          sed "s|__RAW_BASE_URL__|${RAW_BASE_URL}|g" templates/index-option1.html > index.html
+
+        
+      - name: Show generated files
+        run: |
+          find output -type f | sort
+          ls -la index.html
+
+      - name: Cleanup workspace
+        run: |
+          rm -rf apps
+
+      - name: Commit and push results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+
+          git add -A output index.html
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update catalog, webp previews, and index page"
+            git push origin HEAD:main
+          fi
