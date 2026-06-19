@@ -1,0 +1,40 @@
+{
+  "name": "nflstandings",
+  "configSchema": {
+    "location": {
+      "type": "string",
+      "label": "Location",
+      "description": "Location for which to display time."
+    },
+    "divisionType": {
+      "type": "string",
+      "label": "Division",
+      "description": "Which division to display.",
+      "default": "divisionOptions[0].value"
+    },
+    "rotationSpeed": {
+      "type": "string",
+      "label": "Rotation Speed",
+      "description": "Amount of seconds each score is displayed.",
+      "default": "rotationOptions[2].value"
+    },
+    "teamsOptions": {
+      "type": "string",
+      "label": "Teams Per View",
+      "description": "How many teams it should show at once.",
+      "default": "teamsOptions[1].value"
+    },
+    "displayTop": {
+      "type": "string",
+      "label": "Top Display",
+      "description": "A toggle of what to display on the top shelf.",
+      "default": "displayTopOptions[0].value"
+    },
+    "displayTimeColor": {
+      "type": "string",
+      "label": "Top Display Color",
+      "description": "Select which color you want the top display to be.",
+      "default": "colorOptions[5].value"
+    }
+  }
+}

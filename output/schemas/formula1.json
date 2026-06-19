@@ -1,0 +1,26 @@
+{
+  "name": "formula1",
+  "configSchema": {
+    "F1_Information": {
+      "type": "string",
+      "label": "F1 Information",
+      "description": "Select which info you want",
+      "default": "DEFAULTS[\"display\"]"
+    },
+    "generated": {
+      "type": "string"
+    },
+    "time_24": {
+      "type": "boolean",
+      "label": "24 hour format",
+      "description": "Display the time in 24 hour format.",
+      "default": "DEFAULTS[\"time_24\"]"
+    },
+    "date_us": {
+      "type": "boolean",
+      "label": "US Date format",
+      "description": "Display the date in US format.",
+      "default": "DEFAULTS[\"date_us\"]"
+    }
+  }
+}

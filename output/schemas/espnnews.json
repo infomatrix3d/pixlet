@@ -1,0 +1,23 @@
+{
+  "name": "espnnews",
+  "configSchema": {
+    "sport": {
+      "type": "string",
+      "label": "Sport",
+      "description": "The headlines of the sport to be displayed.",
+      "default": "\"All\""
+    },
+    "speed": {
+      "type": "string",
+      "label": "Scroll Speed",
+      "description": "Change the speed that text scrolls.",
+      "default": "scroll_speed[-1].value"
+    },
+    "scroll_vertical": {
+      "type": "boolean",
+      "label": "Scroll Vertically?",
+      "description": "Should text scroll vertically?",
+      "default": false
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "newsmix",
+  "configSchema": {
+    "feed1": {
+      "type": "string",
+      "label": "First Feed",
+      "description": "Choose your first news feed"
+    },
+    "feed2": {
+      "type": "string",
+      "label": "Second Feed",
+      "description": "Choose your second news feed"
+    },
+    "feed3": {
+      "type": "string",
+      "label": "Third Feed",
+      "description": "Choose your third news feed"
+    },
+    "header_color": {
+      "type": "string",
+      "label": "Feed Name Color",
+      "description": "Color for the feed name header",
+      "default": "DEFAULT_COLORS[\"header\"]"
+    },
+    "headline_color": {
+      "type": "string",
+      "label": "Headline Color",
+      "description": "Color for news headlines",
+      "default": "DEFAULT_COLORS[\"headline\"]"
+    },
+    "desc_color": {
+      "type": "string",
+      "label": "Description Color",
+      "description": "Color for news descriptions",
+      "default": "DEFAULT_COLORS[\"desc\"]"
+    },
+    "scroll_speed": {
+      "type": "string",
+      "label": "Scroll Speed",
+      "description": "Speed of text scrolling",
+      "default": "\"75\""
+    }
+  }
+}

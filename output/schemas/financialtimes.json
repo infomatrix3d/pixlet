@@ -1,0 +1,17 @@
+{
+  "name": "financialtimes",
+  "configSchema": {
+    "news_edition": {
+      "type": "string",
+      "label": "News Page",
+      "description": "Select which page to display",
+      "default": "\"home\""
+    },
+    "articlecount": {
+      "type": "string",
+      "label": "Article Count",
+      "description": "Select number of articles to display",
+      "default": "\"3\""
+    }
+  }
+}
