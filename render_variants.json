@@ -3,7 +3,7 @@
     {
       "name": "toronto_metric_2x",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\"}",
         "units": "metric",
         "showthreeday": true,
         "api_v2": "$WEATHER_API_KEY",
