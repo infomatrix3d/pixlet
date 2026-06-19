@@ -41,15 +41,14 @@
       "is_2x": true
     },
     {
-      "name": "toronto_metric_2x",
-      "file": "output/webp/weather/toronto_metric_2x.webp",
+      "name": "toronto_metric",
+      "file": "output/webp/weather/toronto_metric.webp",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "units": "metric",
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
         "showthreeday": true,
         "api_v2": "$WEATHER_API_KEY"
       },
-      "is_2x": true
+      "is_2x": false
     }
   ],
   "abcnews": [
