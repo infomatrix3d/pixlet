@@ -49,10 +49,6 @@ jobs:
             --allowed allowed_apps.txt \
             --output output
 
-      # Add/remove secrets here based on what your render_variants.json references.
-      # If a variant JSON value is "$WEATHER_API_KEY", render_webp.py should resolve
-      # it from this step environment. GitHub Actions env vars are available to run
-      # steps on the runner. 【4-75a774】【5-311474】
       - name: Render WEBP files
         env:
           WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
