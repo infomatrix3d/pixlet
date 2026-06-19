@@ -1,0 +1,15 @@
+nhlscores
+nhlstandings
+fuzzyclock
+weather
+abcnews
+accuweather
+analogclock
+foxnews
+todoist
+traffic
+worldcup
+teslamate
+bitcointicker
+prayer_times
+skynews
