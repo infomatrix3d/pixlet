@@ -3,10 +3,14 @@
 from pathlib import Path
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
+
+
+SECRETISH_KEYS = {"api_key", "token", "secret", "password", "key", "apikey", "access_token"}
 
 
 def load_allowed(path: Path):
@@ -38,6 +42,38 @@ def stringify_value(value):
     if value is None:
         return ""
     return str(value)
+
+
+def resolve_env_vars(config: dict) -> dict:
+    resolved = {}
+
+    for key, value in (config or {}).items():
+        if isinstance(value, str) and value.startswith("$") and len(value) > 1:
+            env_name = value[1:]
+            env_value = os.environ.get(env_name)
+
+            if not env_value:
+                raise ValueError(f"Missing environment variable: {env_name}")
+
+            resolved[key] = env_value
+        else:
+            resolved[key] = value
+
+    return resolved
+
+
+def mask_cmd(cmd):
+    masked = []
+    for part in cmd:
+        if "=" in part:
+            key, value = part.split("=", 1)
+            if key.lower() in SECRETISH_KEYS:
+                masked.append(f"{key}=***")
+            else:
+                masked.append(part)
+        else:
+            masked.append(part)
+    return masked
 
 
 def find_star_file(app_dir: Path, app_name: str):
@@ -75,7 +111,7 @@ def render_variant(pixlet_cmd: str, star_file: Path, config: dict, is_2x: bool =
             continue
         cmd.append(f"{key}={rendered}")
 
-    print(f"[CMD] {' '.join(cmd)}")
+    print(f"[CMD] {' '.join(mask_cmd(cmd))}")
     subprocess.run(cmd, cwd=star_file.parent, check=True)
 
     if is_2x:
@@ -90,13 +126,19 @@ def render_variant(pixlet_cmd: str, star_file: Path, config: dict, is_2x: bool =
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Render allowed Tronbyt apps to WEBP with variants and metadata.")
+    parser = argparse.ArgumentParser(
+        description="Render allowed Tronbyt apps to WEBP with variants and metadata."
+    )
     parser.add_argument("--community", required=True, help="Path to cloned apps root, e.g. apps/apps")
     parser.add_argument("--allowed", required=True, help="Path to allowed_apps.txt")
     parser.add_argument("--output", required=True, help="Output folder for rendered WEBP files")
     parser.add_argument("--variants", required=False, help="Path to render_variants.json")
     parser.add_argument("--pixlet", default="pixlet", help="Pixlet executable name/path")
-    parser.add_argument("--continue-on-error", action="store_true", help="Continue rendering other apps/variants if one fails")
+    parser.add_argument(
+        "--continue-on-error",
+        action="store_true",
+        help="Continue rendering other apps/variants if one fails and exit successfully."
+    )
     args = parser.parse_args()
 
     community_root = Path(args.community).resolve()
@@ -140,57 +182,64 @@ def main():
 
         app_variants = variants_map.get(app_name, [])
 
-        # ALWAYS render the two defaults first
         render_queue = [
             {
                 "name": "default",
                 "config": {},
-                "is_2x": False
+                "is_2x": False,
             },
             {
                 "name": "default_2x",
                 "config": {},
-                "is_2x": True
-            }
+                "is_2x": True,
+            },
         ]
 
-        # Then add user-defined variants
         for variant in app_variants:
             variant_name = sanitize_filename(variant.get("name", "default"))
             is_2x = bool(variant.get("is_2x", False))
             config = variant.get("config", {}) or {}
 
-            # Avoid collisions with reserved built-in default names
             if variant_name in {"default", "default_2x"}:
                 continue
 
-            render_queue.append({
-                "name": variant_name,
-                "config": config,
-                "is_2x": is_2x
-            })
+            render_queue.append(
+                {
+                    "name": variant_name,
+                    "config": config,
+                    "is_2x": is_2x,
+                }
+            )
 
         for item in render_queue:
             variant_name = item["name"]
-            config = item["config"]
+            original_config = item["config"]
             is_2x = item["is_2x"]
 
             try:
+                resolved_config = resolve_env_vars(original_config)
+
                 print(f"[INFO] Rendering app={app_name}, variant={variant_name}, is_2x={is_2x}")
-                rendered_webp = render_variant(args.pixlet, star_file, config, is_2x=is_2x)
+                rendered_webp = render_variant(
+                    args.pixlet,
+                    star_file,
+                    resolved_config,
+                    is_2x=is_2x,
+                )
 
                 destination = app_output_dir / f"{variant_name}.webp"
                 shutil.copy2(rendered_webp, destination)
                 print(f"[OK] Saved {destination}")
 
-                metadata[app_name].append({
-                    "name": variant_name,
-                    "file": f"output/webp/{app_name}/{variant_name}.webp",
-                    "config": config,
-                    "is_2x": is_2x
-                })
+                metadata[app_name].append(
+                    {
+                        "name": variant_name,
+                        "file": f"output/webp/{app_name}/{variant_name}.webp",
+                        "config": original_config,
+                        "is_2x": is_2x,
+                    }
+                )
 
-                # cleanup temporary generated file inside cloned apps tree
                 rendered_webp.unlink(missing_ok=True)
 
             except subprocess.CalledProcessError as e:
@@ -215,6 +264,11 @@ def main():
         print("\nRender completed with failures:")
         for item in failures:
             print(" - " + " | ".join(item))
+
+        if args.continue_on_error:
+            print("\nCompleted with partial failures, but exiting successfully because --continue-on-error was set.")
+            return 0
+
         return 1
 
     print("\nAll WEBP files rendered successfully.")
