@@ -1,0 +1,91 @@
+{
+  "name": "traffic",
+  "configSchema": {
+    "mode": {
+      "type": "string",
+      "label": "Mode of Transport"
+    },
+    "origin_label": {
+      "type": "string",
+      "label": "Origin label",
+      "description": "Optional, if you don't provide a label we'll use the address instead.",
+      "default": "\"\""
+    },
+    "origin": {
+      "type": "string",
+      "label": "Origin",
+      "description": "Origin adress"
+    },
+    "destination_label": {
+      "type": "string",
+      "label": "Destination label",
+      "description": "Optional, if you don't provide a label we'll use the address instead.",
+      "default": "\"\""
+    },
+    "destination": {
+      "type": "string",
+      "label": "Destination",
+      "description": "Destination adress"
+    },
+    "avoid_highways": {
+      "type": "boolean",
+      "label": "Avoid highways",
+      "description": "Limited access roads will be deprioritized",
+      "default": false
+    },
+    "avoid_tolls": {
+      "type": "boolean",
+      "label": "Avoid toll roads",
+      "description": "Toll roads will be deprioritized",
+      "default": false
+    },
+    "avoid_bandt": {
+      "type": "boolean",
+      "label": "Avoid bridges & tunnels",
+      "description": "Bridges and tunnels will be avoided if possible",
+      "default": false
+    },
+    "avoid_ferry": {
+      "type": "boolean",
+      "label": "No ferries",
+      "description": "Routes will not include ferries",
+      "default": false
+    },
+    "avoid_unpaved": {
+      "type": "boolean",
+      "label": "Avoid unpaved roads",
+      "description": "Routes will avoid unpaved roads.",
+      "default": true
+    },
+    "avoid_hills": {
+      "type": "boolean",
+      "label": "Avoid hilly routes",
+      "description": "Routing will prefer flat routes to hilly ones.",
+      "default": true
+    },
+    "prefer_bike_lanes": {
+      "type": "boolean",
+      "label": "Bike-friendly roads",
+      "description": "Routes will prioritize roads with bike lanes.",
+      "default": true
+    },
+    "bing_auth": {
+      "type": "string",
+      "label": "Bing Maps API Key",
+      "description": "Enter your API Key from bingmapsportal.com/Application. Bringing your own key means all Tidbyt owners can use this app!",
+      "default": "\"\""
+    },
+    "mq_auth": {
+      "type": "string",
+      "label": "MapQuest API Consumer Key",
+      "description": "Enter your free or paid API Key from mapquestapi.com. Bringing your own key means all Tidbyt owners can use this app!",
+      "default": "\"\""
+    },
+    "ors_auth": {
+      "type": "string",
+      "label": "OpenRouteService Free API Key",
+      "description": "Enter your free API Key from openrouteservice.org. Bringing your own key means all Tidbyt owners can use this app!",
+      "default": "\"\""
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "analogclock",
+  "configSchema": {
+    "location": {
+      "type": "string",
+      "label": "Location",
+      "description": "Location for which to display time"
+    }
+  }
+}

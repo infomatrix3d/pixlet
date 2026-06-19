@@ -1,0 +1,17 @@
+{
+  "name": "foxnews",
+  "configSchema": {
+    "news_edition": {
+      "type": "string",
+      "label": "News Section",
+      "description": "Select which section to display",
+      "default": "\"latest\""
+    },
+    "articlecount": {
+      "type": "string",
+      "label": "Article Count",
+      "description": "Select number of articles to display",
+      "default": "\"3\""
+    }
+  }
+}

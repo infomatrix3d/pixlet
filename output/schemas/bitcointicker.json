@@ -1,0 +1,23 @@
+{
+  "name": "bitcointicker",
+  "configSchema": {
+    "currency": {
+      "type": "string",
+      "label": "Currency",
+      "description": "Show price in this currency.",
+      "default": "currency_options[0].value"
+    },
+    "period": {
+      "type": "string",
+      "label": "Period",
+      "description": "Show chart in this period.",
+      "default": "period_options[0].value"
+    },
+    "show_currency_abbriviation": {
+      "type": "boolean",
+      "label": "Show currency abbriviation?",
+      "description": "Enable this option to show the currency abbriviation.",
+      "default": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "accuweather",
+  "configSchema": {
+    "apiKey": {
+      "type": "string",
+      "label": "AccuWeather API Key",
+      "description": "API key for AccuWeather data access"
+    },
+    "locationKey": {
+      "type": "string",
+      "label": "AccuWeather Location Key",
+      "description": "Location key for AccuWeather data access"
+    },
+    "tempUnits": {
+      "type": "string",
+      "label": "Temperature units",
+      "description": "The units for temperature display",
+      "default": "tempUnitsOptions[0].value"
+    }
+  }
+}

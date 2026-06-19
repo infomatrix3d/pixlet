@@ -1,0 +1,28 @@
+{
+  "name": "todoist",
+  "configSchema": {
+    "api_key": {
+      "type": "string",
+      "label": "API Key",
+      "description": "Your Todoist API token. Find it in Todoist Settings > Integrations > Developer."
+    },
+    "name": {
+      "type": "string",
+      "label": "Name",
+      "description": "Name to display",
+      "default": "DEFAULT_NAME"
+    },
+    "filter": {
+      "type": "string",
+      "label": "Filter",
+      "description": "Filter to apply to tasks.",
+      "default": "DEFAULT_FILTER"
+    },
+    "show": {
+      "type": "boolean",
+      "label": "Show When No Tasks",
+      "description": "Show this app when there are no tasks.",
+      "default": "DEFAULT_SHOW_IF_EMPTY"
+    }
+  }
+}

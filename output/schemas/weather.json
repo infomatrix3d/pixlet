@@ -1,0 +1,39 @@
+{
+  "name": "weather",
+  "configSchema": {
+    "location": {
+      "type": "string",
+      "label": "Location",
+      "description": "Location for the display of the weather."
+    },
+    "showthreeday": {
+      "type": "boolean",
+      "label": "Show Three Day Forecast",
+      "description": "Toggle between three day and single day display.",
+      "default": true
+    },
+    "units": {
+      "type": "string",
+      "label": "Units",
+      "description": "Display units.",
+      "default": "options[0].value"
+    },
+    "api_v3": {
+      "type": "string"
+    },
+    "api_v2": {
+      "type": "string",
+      "label": "OpenWeather API 2.5 Key"
+    },
+    "cache_mins": {
+      "type": "string",
+      "label": "Cache Duration"
+    },
+    "force_1x_images": {
+      "type": "boolean",
+      "label": "Force 1x Images",
+      "description": "The two-day forecast images have been upscaled to 2x. Enable this if you prefer the crispier look of the 1x images.",
+      "default": false
+    }
+  }
+}

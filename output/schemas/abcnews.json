@@ -1,0 +1,11 @@
+{
+  "name": "abcnews",
+  "configSchema": {
+    "news": {
+      "type": "string",
+      "label": "News Feed",
+      "description": "Select your news feed",
+      "default": "NewsOptions[0].value"
+    }
+  }
+}

@@ -1,0 +1,517 @@
+{
+  "apps": [
+    {
+      "name": "nhlscores",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "selectedTeam": {
+          "type": "string",
+          "label": "Team Focus",
+          "description": "Only show scores for selected team.",
+          "default": "teamOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "displayType": {
+          "type": "string",
+          "label": "Display Type",
+          "description": "Style of how the scores are displayed.",
+          "default": "displayOptions[0].value"
+        },
+        "pregameDisplay": {
+          "type": "string",
+          "label": "Pre-Game",
+          "description": "What to display in the score area if the game hasn't started.",
+          "default": "pregameOptions[0].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "nhlstandings",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "divisionType": {
+          "type": "string",
+          "label": "Division",
+          "description": "Which division to display.",
+          "default": "divisionOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "teamsOptions": {
+          "type": "string",
+          "label": "Teams Per View",
+          "description": "How many teams it should show at once.",
+          "default": "teamsOptions[1].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "fuzzyclock",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time"
+        },
+        "dialect": {
+          "type": "string",
+          "label": "Language",
+          "description": "Language in which to display time",
+          "default": "dialectOptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "weather",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for the display of the weather."
+        },
+        "showthreeday": {
+          "type": "boolean",
+          "label": "Show Three Day Forecast",
+          "description": "Toggle between three day and single day display.",
+          "default": true
+        },
+        "units": {
+          "type": "string",
+          "label": "Units",
+          "description": "Display units.",
+          "default": "options[0].value"
+        },
+        "api_v3": {
+          "type": "string"
+        },
+        "api_v2": {
+          "type": "string",
+          "label": "OpenWeather API 2.5 Key"
+        },
+        "cache_mins": {
+          "type": "string",
+          "label": "Cache Duration"
+        },
+        "force_1x_images": {
+          "type": "boolean",
+          "label": "Force 1x Images",
+          "description": "The two-day forecast images have been upscaled to 2x. Enable this if you prefer the crispier look of the 1x images.",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "abcnews",
+      "configSchema": {
+        "news": {
+          "type": "string",
+          "label": "News Feed",
+          "description": "Select your news feed",
+          "default": "NewsOptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "accuweather",
+      "configSchema": {
+        "apiKey": {
+          "type": "string",
+          "label": "AccuWeather API Key",
+          "description": "API key for AccuWeather data access"
+        },
+        "locationKey": {
+          "type": "string",
+          "label": "AccuWeather Location Key",
+          "description": "Location key for AccuWeather data access"
+        },
+        "tempUnits": {
+          "type": "string",
+          "label": "Temperature units",
+          "description": "The units for temperature display",
+          "default": "tempUnitsOptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "analogclock",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time"
+        }
+      }
+    },
+    {
+      "name": "foxnews",
+      "configSchema": {
+        "news_edition": {
+          "type": "string",
+          "label": "News Section",
+          "description": "Select which section to display",
+          "default": "\"latest\""
+        },
+        "articlecount": {
+          "type": "string",
+          "label": "Article Count",
+          "description": "Select number of articles to display",
+          "default": "\"3\""
+        }
+      }
+    },
+    {
+      "name": "todoist",
+      "configSchema": {
+        "api_key": {
+          "type": "string",
+          "label": "API Key",
+          "description": "Your Todoist API token. Find it in Todoist Settings > Integrations > Developer."
+        },
+        "name": {
+          "type": "string",
+          "label": "Name",
+          "description": "Name to display",
+          "default": "DEFAULT_NAME"
+        },
+        "filter": {
+          "type": "string",
+          "label": "Filter",
+          "description": "Filter to apply to tasks.",
+          "default": "DEFAULT_FILTER"
+        },
+        "show": {
+          "type": "boolean",
+          "label": "Show When No Tasks",
+          "description": "Show this app when there are no tasks.",
+          "default": "DEFAULT_SHOW_IF_EMPTY"
+        }
+      }
+    },
+    {
+      "name": "traffic",
+      "configSchema": {
+        "mode": {
+          "type": "string",
+          "label": "Mode of Transport"
+        },
+        "origin_label": {
+          "type": "string",
+          "label": "Origin label",
+          "description": "Optional, if you don't provide a label we'll use the address instead.",
+          "default": "\"\""
+        },
+        "origin": {
+          "type": "string",
+          "label": "Origin",
+          "description": "Origin adress"
+        },
+        "destination_label": {
+          "type": "string",
+          "label": "Destination label",
+          "description": "Optional, if you don't provide a label we'll use the address instead.",
+          "default": "\"\""
+        },
+        "destination": {
+          "type": "string",
+          "label": "Destination",
+          "description": "Destination adress"
+        },
+        "avoid_highways": {
+          "type": "boolean",
+          "label": "Avoid highways",
+          "description": "Limited access roads will be deprioritized",
+          "default": false
+        },
+        "avoid_tolls": {
+          "type": "boolean",
+          "label": "Avoid toll roads",
+          "description": "Toll roads will be deprioritized",
+          "default": false
+        },
+        "avoid_bandt": {
+          "type": "boolean",
+          "label": "Avoid bridges & tunnels",
+          "description": "Bridges and tunnels will be avoided if possible",
+          "default": false
+        },
+        "avoid_ferry": {
+          "type": "boolean",
+          "label": "No ferries",
+          "description": "Routes will not include ferries",
+          "default": false
+        },
+        "avoid_unpaved": {
+          "type": "boolean",
+          "label": "Avoid unpaved roads",
+          "description": "Routes will avoid unpaved roads.",
+          "default": true
+        },
+        "avoid_hills": {
+          "type": "boolean",
+          "label": "Avoid hilly routes",
+          "description": "Routing will prefer flat routes to hilly ones.",
+          "default": true
+        },
+        "prefer_bike_lanes": {
+          "type": "boolean",
+          "label": "Bike-friendly roads",
+          "description": "Routes will prioritize roads with bike lanes.",
+          "default": true
+        },
+        "bing_auth": {
+          "type": "string",
+          "label": "Bing Maps API Key",
+          "description": "Enter your API Key from bingmapsportal.com/Application. Bringing your own key means all Tidbyt owners can use this app!",
+          "default": "\"\""
+        },
+        "mq_auth": {
+          "type": "string",
+          "label": "MapQuest API Consumer Key",
+          "description": "Enter your free or paid API Key from mapquestapi.com. Bringing your own key means all Tidbyt owners can use this app!",
+          "default": "\"\""
+        },
+        "ors_auth": {
+          "type": "string",
+          "label": "OpenRouteService Free API Key",
+          "description": "Enter your free API Key from openrouteservice.org. Bringing your own key means all Tidbyt owners can use this app!",
+          "default": "\"\""
+        }
+      }
+    },
+    {
+      "name": "worldcup",
+      "configSchema": {
+        "followed_country": {
+          "type": "string",
+          "label": "Country to Follow",
+          "description": "Choose the country you want to track.",
+          "default": "DEFAULT_COUNTRY"
+        },
+        "team_sequence": {
+          "type": "string",
+          "label": "Display which team first?"
+        },
+        "hide_scores": {
+          "type": "boolean",
+          "label": "Hide Scores",
+          "description": "Hide match scores to avoid spoilers.",
+          "default": false
+        },
+        "is_24_hour_format": {
+          "type": "boolean",
+          "label": "24 Hour Format",
+          "description": "Display times in 24-hour format.",
+          "default": false
+        },
+        "is_us_date_format": {
+          "type": "boolean",
+          "label": "US Date Format",
+          "description": "Display dates as MM/DD instead of DD/MM.",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "teslamate",
+      "configSchema": {
+        "ha_url": {
+          "type": "string",
+          "label": "Home Assistant URL",
+          "description": "e.g. https://homeassistant.local:8123"
+        },
+        "ha_token": {
+          "type": "string",
+          "label": "Home Assistant Token",
+          "description": "Long-lived access token from HA"
+        },
+        "battery_entity": {
+          "type": "string",
+          "label": "Battery Level",
+          "description": "Entity name for battery level",
+          "default": "\"sensor.tesla_battery_level\""
+        },
+        "range_entity": {
+          "type": "string",
+          "label": "Range",
+          "description": "Entity name for range",
+          "default": "\"sensor.tesla_est_battery_range\""
+        },
+        "name_entity": {
+          "type": "string",
+          "label": "Display Name",
+          "description": "Entity name for vehicle display name",
+          "default": "\"sensor.tesla_display_name\""
+        },
+        "charger_power_entity": {
+          "type": "string",
+          "label": "Charger Power",
+          "description": "Entity name for charger power",
+          "default": "\"sensor.tesla_charger_power\""
+        },
+        "plugged_in_entity": {
+          "type": "string",
+          "label": "Plugged In",
+          "description": "Entity name for plugged in status",
+          "default": "\"binary_sensor.tesla_plugged_in\""
+        },
+        "charge_limit_entity": {
+          "type": "string",
+          "label": "Charge Limit",
+          "description": "Entity name for charge limit",
+          "default": "\"sensor.tesla_charge_limit_soc\""
+        },
+        "unit": {
+          "type": "string",
+          "label": "Unit"
+        },
+        "mi2km": {
+          "type": "boolean",
+          "label": "Display as KM"
+        },
+        "carimg": {
+          "type": "boolean",
+          "label": "Car Image",
+          "description": "Show car image",
+          "default": true
+        },
+        "car_tint": {
+          "type": "string",
+          "label": "Car Color",
+          "description": "The color of the car to display. Light/White colors will use the default white car.",
+          "default": "\"#FFFFFF\""
+        },
+        "cache_duration": {
+          "type": "string",
+          "label": "Cache Duration"
+        },
+        "color_10": {
+          "type": "string",
+          "label": "Color at 10%",
+          "description": "Battery color when at 10% or below",
+          "default": "\"#FF0000\""
+        },
+        "color_20": {
+          "type": "string",
+          "label": "Color at 20%",
+          "description": "Battery color when at 20%",
+          "default": "\"#FF8000\""
+        },
+        "color_30": {
+          "type": "string",
+          "label": "Color at 30%",
+          "description": "Battery color when at 30%",
+          "default": "\"#FFFF00\""
+        },
+        "color_50": {
+          "type": "string",
+          "label": "Color at 50%",
+          "description": "Battery color when at 50%",
+          "default": "\"#00FF00\""
+        },
+        "color_80": {
+          "type": "string",
+          "label": "Color at 80%",
+          "description": "Battery color when at 80% and above",
+          "default": "\"#00AAFF\""
+        }
+      }
+    },
+    {
+      "name": "bitcointicker",
+      "configSchema": {
+        "currency": {
+          "type": "string",
+          "label": "Currency",
+          "description": "Show price in this currency.",
+          "default": "currency_options[0].value"
+        },
+        "period": {
+          "type": "string",
+          "label": "Period",
+          "description": "Show chart in this period.",
+          "default": "period_options[0].value"
+        },
+        "show_currency_abbriviation": {
+          "type": "boolean",
+          "label": "Show currency abbriviation?",
+          "description": "Enable this option to show the currency abbriviation.",
+          "default": true
+        }
+      }
+    },
+    {
+      "name": "prayer_times",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display prayer times"
+        },
+        "method": {
+          "type": "string",
+          "label": "Prayer Calculation Method",
+          "description": "A prayer times calculation method. Methods identify various schools of thought about how to compute the timings. If not specified, it defaults to Umm Al-Qura University, Makkah",
+          "default": "\"4\""
+        }
+      }
+    },
+    {
+      "name": "skynews",
+      "configSchema": {
+        "feedchoice": {
+          "type": "string",
+          "label": "Choose your favourite feed",
+          "description": "Get news that\u2019s tailored to you.",
+          "default": "fsfeedchoice[0].value"
+        },
+        "fontsize": {
+          "type": "string",
+          "label": "Change the text size",
+          "description": "Prevent long words being cut off.",
+          "default": "fsoptions[0].value"
+        }
+      }
+    }
+  ]
+}

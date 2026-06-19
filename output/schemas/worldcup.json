@@ -1,0 +1,33 @@
+{
+  "name": "worldcup",
+  "configSchema": {
+    "followed_country": {
+      "type": "string",
+      "label": "Country to Follow",
+      "description": "Choose the country you want to track.",
+      "default": "DEFAULT_COUNTRY"
+    },
+    "team_sequence": {
+      "type": "string",
+      "label": "Display which team first?"
+    },
+    "hide_scores": {
+      "type": "boolean",
+      "label": "Hide Scores",
+      "description": "Hide match scores to avoid spoilers.",
+      "default": false
+    },
+    "is_24_hour_format": {
+      "type": "boolean",
+      "label": "24 Hour Format",
+      "description": "Display times in 24-hour format.",
+      "default": false
+    },
+    "is_us_date_format": {
+      "type": "boolean",
+      "label": "US Date Format",
+      "description": "Display dates as MM/DD instead of DD/MM.",
+      "default": false
+    }
+  }
+}

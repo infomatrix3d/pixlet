@@ -1,0 +1,17 @@
+{
+  "name": "skynews",
+  "configSchema": {
+    "feedchoice": {
+      "type": "string",
+      "label": "Choose your favourite feed",
+      "description": "Get news that\u2019s tailored to you.",
+      "default": "fsfeedchoice[0].value"
+    },
+    "fontsize": {
+      "type": "string",
+      "label": "Change the text size",
+      "description": "Prevent long words being cut off.",
+      "default": "fsoptions[0].value"
+    }
+  }
+}

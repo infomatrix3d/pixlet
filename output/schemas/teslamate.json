@@ -1,0 +1,105 @@
+{
+  "name": "teslamate",
+  "configSchema": {
+    "ha_url": {
+      "type": "string",
+      "label": "Home Assistant URL",
+      "description": "e.g. https://homeassistant.local:8123"
+    },
+    "ha_token": {
+      "type": "string",
+      "label": "Home Assistant Token",
+      "description": "Long-lived access token from HA"
+    },
+    "battery_entity": {
+      "type": "string",
+      "label": "Battery Level",
+      "description": "Entity name for battery level",
+      "default": "\"sensor.tesla_battery_level\""
+    },
+    "range_entity": {
+      "type": "string",
+      "label": "Range",
+      "description": "Entity name for range",
+      "default": "\"sensor.tesla_est_battery_range\""
+    },
+    "name_entity": {
+      "type": "string",
+      "label": "Display Name",
+      "description": "Entity name for vehicle display name",
+      "default": "\"sensor.tesla_display_name\""
+    },
+    "charger_power_entity": {
+      "type": "string",
+      "label": "Charger Power",
+      "description": "Entity name for charger power",
+      "default": "\"sensor.tesla_charger_power\""
+    },
+    "plugged_in_entity": {
+      "type": "string",
+      "label": "Plugged In",
+      "description": "Entity name for plugged in status",
+      "default": "\"binary_sensor.tesla_plugged_in\""
+    },
+    "charge_limit_entity": {
+      "type": "string",
+      "label": "Charge Limit",
+      "description": "Entity name for charge limit",
+      "default": "\"sensor.tesla_charge_limit_soc\""
+    },
+    "unit": {
+      "type": "string",
+      "label": "Unit"
+    },
+    "mi2km": {
+      "type": "boolean",
+      "label": "Display as KM"
+    },
+    "carimg": {
+      "type": "boolean",
+      "label": "Car Image",
+      "description": "Show car image",
+      "default": true
+    },
+    "car_tint": {
+      "type": "string",
+      "label": "Car Color",
+      "description": "The color of the car to display. Light/White colors will use the default white car.",
+      "default": "\"#FFFFFF\""
+    },
+    "cache_duration": {
+      "type": "string",
+      "label": "Cache Duration"
+    },
+    "color_10": {
+      "type": "string",
+      "label": "Color at 10%",
+      "description": "Battery color when at 10% or below",
+      "default": "\"#FF0000\""
+    },
+    "color_20": {
+      "type": "string",
+      "label": "Color at 20%",
+      "description": "Battery color when at 20%",
+      "default": "\"#FF8000\""
+    },
+    "color_30": {
+      "type": "string",
+      "label": "Color at 30%",
+      "description": "Battery color when at 30%",
+      "default": "\"#FFFF00\""
+    },
+    "color_50": {
+      "type": "string",
+      "label": "Color at 50%",
+      "description": "Battery color when at 50%",
+      "default": "\"#00FF00\""
+    },
+    "color_80": {
+      "type": "string",
+      "label": "Color at 80%",
+      "description": "Battery color when at 80% and above",
+      "default": "\"#00AAFF\""
+    }
+  }
+}

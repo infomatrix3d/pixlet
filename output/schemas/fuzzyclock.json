@@ -1,0 +1,16 @@
+{
+  "name": "fuzzyclock",
+  "configSchema": {
+    "location": {
+      "type": "string",
+      "label": "Location",
+      "description": "Location for which to display time"
+    },
+    "dialect": {
+      "type": "string",
+      "label": "Language",
+      "description": "Language in which to display time",
+      "default": "dialectOptions[0].value"
+    }
+  }
+}
