@@ -1,0 +1,139 @@
+name: Build Tronbyt Catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ✅ Checkout repo (shallow)
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ✅ Clone Tronbyt apps (optimized)
+      - name: Clone Tronbyt apps repo
+        run: |
+          git clone --depth=1 --filter=blob:none https://github.com/tronbyt/apps.git
+
+      # ✅ Setup Python only
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ✅ Install Pixlet (FAST - no Go)
+      - name: Install Pixlet
+        run: |
+          curl -L https://github.com/tidbyt/pixlet/releases/latest/download/pixlet_linux_amd64 \
+            -o pixlet
+          chmod +x pixlet
+          sudo mv pixlet /usr/local/bin/pixlet
+
+      # ✅ Cache rendered WEBP output
+      - name: Cache WebP output
+        uses: actions/cache@v4
+        with:
+          path: output/webp
+          key: webp-${{ hashFiles('render_variants.json', 'allowed_apps.txt') }}
+
+      # ✅ Generate catalog + schema
+      - name: Generate catalog
+        run: |
+          python scripts/build_catalog.py \
+            --community apps \
+            --allowed allowed_apps.txt \
+            --output output
+
+      # ✅ Render WEBP previews (continues on failure)
+      - name: Render WEBP files
+        env:
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        run: |
+          python scripts/render_webp.py \
+            --community apps/apps \
+            --allowed allowed_apps.txt \
+            --variants render_variants.json \
+            --output output/webp \
+            --continue-on-error
+
+      # ✅ Build catalog UI (Option 1)
+      - name: Create index.html
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RAW_BASE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main"
+
+          cat <<'EOF' > index.template.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>InfoMatrix Catalog</title>
+          </head>
+          <body>
+          <h1>InfoMatrix App Catalog</h1>
+          <div id="catalog"></div>
+
+          <script>
+          const RAW_BASE = "__RAW_BASE_URL__";
+
+          async function load() {
+            const res = await fetch("output/webp/index.json");
+            const data = await res.json();
+
+            const root = document.getElementById("catalog");
+
+            Object.entries(data).forEach(([app, entries]) => {
+              const variants = entries.filter(e => e.name !== "default" && e.name !== "default_2x");
+
+              const preview = variants.length ? variants[0] : entries.find(e => e.name === "default");
+
+              const div = document.createElement("div");
+              div.innerHTML = `
+                <h2>${app}</h2>
+                <img src="${preview.file}" width="128" />
+                <br>
+                <button onclick="navigator.clipboard.writeText('${RAW_BASE}/${preview.file}')">
+                  Copy URL
+                </button>
+                <hr>
+              `;
+              root.appendChild(div);
+            });
+          }
+
+          load();
+          </script>
+
+          </body>
+          </html>
+          EOF
+
+          sed "s|__RAW_BASE_URL__|${RAW_BASE_URL}|g" index.template.html > index.html
+          rm index.template.html
+
+      # ✅ Cleanup repo clone
+      - name: Cleanup
+        run: rm -rf apps
+
+      # ✅ Commit changes only if needed
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A output index.html
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update catalog and previews"
+            git push
+          fi
