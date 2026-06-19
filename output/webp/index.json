@@ -44,7 +44,6 @@
       "name": "toronto_metric_2x",
       "file": "output/webp/weather/toronto_metric_2x.webp",
       "config": {
-        "units": "metric",
         "api_v3": "$WEATHER_API_KEY",
         "api_v2": "$WEATHER_API_KEY"
       },
