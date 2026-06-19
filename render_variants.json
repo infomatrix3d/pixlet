@@ -4,8 +4,8 @@
       "name": "toronto_metric_2x",
       "config": {
         "location": {
-          "lat": "43.6532",
-          "lng": "-79.3832",
+          "lat": 43.6532,
+          "lng": -79.3832,
           "locality": "Toronto",
           "timezone": "America/Toronto"
         },
