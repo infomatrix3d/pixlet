@@ -229,6 +229,38 @@
       "file": "output/webp/fuzzyclock/default_2x.webp",
       "config": {},
       "is_2x": true
+    },
+    {
+      "name": "est",
+      "file": "output/webp/fuzzyclock/est.webp",
+      "config": {
+        "location": "America/Toronto"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "est_2x",
+      "file": "output/webp/fuzzyclock/est_2x.webp",
+      "config": {
+        "location": "America/Toronto"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "mst",
+      "file": "output/webp/fuzzyclock/mst.webp",
+      "config": {
+        "location": "America/Phoenix"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "mst_2x",
+      "file": "output/webp/fuzzyclock/mst_2x.webp",
+      "config": {
+        "location": "America/Phoenix"
+      },
+      "is_2x": true
     }
   ],
   "weather": [
@@ -254,6 +286,17 @@
         "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": false
+    },
+    {
+      "name": "toronto_metric_2x",
+      "file": "output/webp/weather/toronto_metric_2x.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "units": "metric",
+        "showthreeday": false,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": true
     }
   ],
   "analogclock": [
