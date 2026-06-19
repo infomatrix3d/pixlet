@@ -39,28 +39,6 @@
       "file": "output/webp/weather/default_2x.webp",
       "config": {},
       "is_2x": true
-    },
-    {
-      "name": "toronto_metric",
-      "file": "output/webp/weather/toronto_metric.webp",
-      "config": {
-        "city": "Toronto",
-        "units": "metric",
-        "api_v3": "$WEATHER_API_KEY",
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": true
-    },
-    {
-      "name": "new_york_imperial_2x",
-      "file": "output/webp/weather/new_york_imperial_2x.webp",
-      "config": {
-        "city": "New York",
-        "units": "imperial",
-        "api_v3": "$WEATHER_API_KEY",
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": true
     }
   ],
   "abcnews": [
