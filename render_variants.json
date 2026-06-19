@@ -1,20 +1,15 @@
 {
   "weather": [
     {
-      "name": "toronto_metric",
+      "name": "toronto_metric_2x",
       "config": {
-        "location": "{"lat":"43.6532","lng":"-79.3832","locality":"Toronto","timezone":"America/Toronto"}",
+        "location": {
+          "lat": "43.6532",
+          "lng": "-79.3832",
+          "locality": "Toronto",
+          "timezone": "America/Toronto"
+        },
         "units": "metric",
-        "api_v3": "$WEATHER_API_KEY",
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": true
-    },
-    {
-      "name": "new_york_imperial_2x",
-      "config": {
-        "city": "New York",
-        "units": "imperial",
         "api_v3": "$WEATHER_API_KEY",
         "api_v2": "$WEATHER_API_KEY"
       },
