@@ -45,7 +45,8 @@
       "file": "output/webp/weather/toronto_metric.webp",
       "config": {
         "city": "Toronto",
-        "units": "metric"
+        "units": "metric",
+        "api_v3": "$WEATHER_API_KEY"
       },
       "is_2x": true
     },
@@ -54,7 +55,8 @@
       "file": "output/webp/weather/new_york_imperial_2x.webp",
       "config": {
         "city": "New York",
-        "units": "imperial"
+        "units": "imperial",
+        "api_v3": "$WEATHER_API_KEY"
       },
       "is_2x": true
     }
