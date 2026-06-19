@@ -6,7 +6,7 @@
         "city": "Toronto",
         "units": "metric",
         "api_v3": "$WEATHER_API_KEY",
-        "api_v2": "$WEATHER_API_KEY",
+        "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": true
     },
@@ -16,7 +16,7 @@
         "city": "New York",
         "units": "imperial",
         "api_v3": "$WEATHER_API_KEY",
-        "api_v2": "$WEATHER_API_KEY",
+        "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": true
     }
