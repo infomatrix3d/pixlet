@@ -25,14 +25,14 @@
     {
       "name": "EST",
       "config": {
-        "location": "Canada/Toronto"
+        "location": "America/New_York"
       },
       "is_2x": false
     },
     {
       "name": "EST_2x",
       "config": {
-        "location": "Canada/Toronto"
+        "location": "America/New_York"
       },
       "is_2x": true
     }
