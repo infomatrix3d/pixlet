@@ -39,16 +39,6 @@
       "file": "output/webp/weather/default_2x.webp",
       "config": {},
       "is_2x": true
-    },
-    {
-      "name": "toronto_metric",
-      "file": "output/webp/weather/toronto_metric.webp",
-      "config": {
-        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "showthreeday": true,
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": false
     }
   ],
   "abcnews": [
