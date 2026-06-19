@@ -26,7 +26,7 @@
       "name": "EST",
       "config": {
         "location": "America/Toronto"
-        "language": "en"
+        "dialect": "en"
       },
       "is_2x": false
     },
@@ -34,7 +34,7 @@
       "name": "EST_2x",
       "config": {
         "location": "America/Toronto"
-        "language": "en"
+        "dialect": "en"
       },
       "is_2x": true
     }
