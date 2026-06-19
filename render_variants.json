@@ -25,9 +25,9 @@
   ],
     "weather": [
     {
-      "name": "newyork_metric_2x",
+      "name": "newyork_imperial_2x",
       "config": {
-        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}",
         "showthreeday": true,
         "api_v2": "$WEATHER_API_KEY"
       },
@@ -36,9 +36,9 @@
   ],
     "weather": [
     {
-      "name": "toronto_metric",
+      "name": "newyork_imperial",
       "config": {
-        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"New York\",\"timezone\":\"America/New_york\"}",
         "showthreeday": true,
         "api_v2": "$WEATHER_API_KEY"
       },
