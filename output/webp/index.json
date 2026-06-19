@@ -45,6 +45,7 @@
       "file": "output/webp/weather/toronto_metric_2x.webp",
       "config": {
         "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "units": "metric",
         "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": true
