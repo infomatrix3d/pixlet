@@ -1,6 +1,16 @@
 {
   "weather": [
     {
+      "name": "toronto_metric",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "units": "metric",
+        "showthreeday": false,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": false
+    },
+    {
       "name": "toronto_metric_2x",
       "config": {
         "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
@@ -11,50 +21,32 @@
       "is_2x": true
     }
   ],
-  "weather": [
-    {
-      "name": "toronto_metric",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "units": "metric",
-        "showthreeday": false,
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": false
-    }
-  ],
   "fuzzyclock": [
     {
       "name": "EST",
       "config": {
-        "location": "America/Toronto",
+        "location": "America/Toronto"
       },
       "is_2x": false
-    }
-  ],
-  "fuzzyclock": [
+    },
     {
       "name": "EST_2x",
       "config": {
-        "location": "America/Toronto",
+        "location": "America/Toronto"
       },
       "is_2x": true
-    }
-  ],
-  "fuzzyclock": [
+    },
     {
       "name": "MST",
       "config": {
-        "location": "America/Phoenix",
+        "location": "America/Phoenix"
       },
       "is_2x": false
-    }
-  ],
-  "fuzzyclock": [
+    },
     {
       "name": "MST_2x",
       "config": {
-        "location": "America/Phoenix",
+        "location": "America/Phoenix"
       },
       "is_2x": true
     }
