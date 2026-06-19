@@ -53,6 +53,24 @@
       "file": "output/webp/weather/default_2x.webp",
       "config": {},
       "is_2x": true
+    },
+    {
+      "name": "toronto_metric",
+      "file": "output/webp/weather/toronto_metric.webp",
+      "config": {
+        "city": "Toronto",
+        "units": "metric"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "new_york_imperial_2x",
+      "file": "output/webp/weather/new_york_imperial_2x.webp",
+      "config": {
+        "city": "New York",
+        "units": "imperial"
+      },
+      "is_2x": true
     }
   ],
   "abcnews": [
