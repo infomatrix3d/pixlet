@@ -16,8 +16,6 @@
       --primary-hover: #0550ae;
       --success: #1a7f37;
       --success-hover: #116329;
-      --secondary: #57606a;
-      --secondary-hover: #424a53;
       --badge: #eaeef2;
     }
 
@@ -176,7 +174,6 @@
       transition: 0.2s ease;
       text-align: center;
       color: #fff;
-      text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -196,14 +193,6 @@
 
     .btn-success:hover {
       background: var(--success-hover);
-    }
-
-    .btn-secondary {
-      background: var(--secondary);
-    }
-
-    .btn-secondary:hover {
-      background: var(--secondary-hover);
     }
 
     .btn-wide {
@@ -304,7 +293,7 @@
     .variant-actions {
       margin-top: 10px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 8px;
     }
 
@@ -367,10 +356,6 @@
 
     function assetUrl(relPath) {
       return `${RAW_BASE_URL}/${relPath}`;
-    }
-
-    function relPathToDisplay(relPath) {
-      return relPath;
     }
 
     function escapeHtml(str) {
@@ -439,7 +424,6 @@
               <div class="config-box">${escapeHtml(configText)}</div>
               <div class="variant-actions">
                 <button class="btn btn-success" onclick="copyText(this, '${rawUrl}')">Copy Variant URL</button>
-                <a class="btn btn-secondary" href="${rawUrl}" target="_blank" rel="noopener noreferrer">Open Variant</a>
               </div>
             </div>
           </div>
@@ -479,11 +463,7 @@
 
           <div class="actions">
             <button class="btn btn-success" onclick="copyText(this, '${defaultRaw}')">Copy Default URL</button>
-            <a class="btn btn-secondary" href="${defaultRaw}" target="_blank" rel="noopener noreferrer">Open Default</a>
-
             <button class="btn btn-success" onclick="copyText(this, '${default2xRaw}')">Copy Default 2x URL</button>
-            <a class="btn btn-secondary" href="${default2xRaw}" target="_blank" rel="noopener noreferrer">Open Default 2x</a>
-
             <button class="btn btn-primary btn-wide" onclick="toggleVariants(this)">Show Variants (${variantCount})</button>
           </div>
 
