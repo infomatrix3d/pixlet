@@ -1,0 +1,20 @@
+{
+  "weather": [
+    {
+      "name": "toronto_metric",
+      "config": {
+        "city": "Toronto",
+        "units": "metric"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "new_york_imperial_2x",
+      "config": {
+        "city": "New York",
+        "units": "imperial"
+      },
+      "is_2x": true
+    }
+  ]
+}
