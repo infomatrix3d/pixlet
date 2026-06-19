@@ -1,0 +1,63 @@
+name: Build Tronbyt Catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# ✅ REQUIRED to allow push back to same repo
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ✅ Checkout your private repo
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ✅ Clone correct Tronbyt apps repo (FIXED)
+      - name: Clone Tronbyt apps repo
+        run: |
+          git clone --depth=1 https://github.com/tronbyt/apps.git
+
+      # ✅ Debug (optional but useful first few runs)
+      - name: List available apps
+        run: |
+          ls apps/apps
+
+      # ✅ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # ✅ Generate catalog + schemas
+      - name: Generate catalog
+        run: |
+          python scripts/build_catalog.py \
+            --community apps \
+            --allowed allowed_apps.txt \
+            --output output
+
+      # ✅ Cleanup cloned repo so it doesn't get committed
+      - name: Cleanup workspace
+        run: |
+          rm -rf apps
+
+      # ✅ Commit only output folder
+      - name: Commit changes
+        run: |
+          git config user.name "catalog-bot"
+          git config user.email "actions@github.com"
+
+          git add output/
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update catalog"
+            git push
+          fi
