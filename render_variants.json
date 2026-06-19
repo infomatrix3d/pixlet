@@ -10,5 +10,39 @@
       },
       "is_2x": true
     }
-  ]
+  ],
+    "weather": [
+    {
+      "name": "toronto_metric",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "units": "metric",
+        "showthreeday": true,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": false
+    }
+  ],
+    "weather": [
+    {
+      "name": "newyork_metric_2x",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "showthreeday": true,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": true
+    }
+  ],
+    "weather": [
+    {
+      "name": "toronto_metric",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.006\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "showthreeday": true,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": false
+    }
+  ],
 }
