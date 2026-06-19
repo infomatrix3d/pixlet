@@ -5,7 +5,6 @@ on:
   push:
     branches: [main]
 
-# ✅ REQUIRED to allow push back to same repo
 permissions:
   contents: write
 
@@ -14,27 +13,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ✅ Checkout your private repo
+      # Checkout your repo
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ✅ Clone correct Tronbyt apps repo (FIXED)
+      # Clone Tronbyt apps repo
       - name: Clone Tronbyt apps repo
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git
 
-      # ✅ Debug (optional but useful first few runs)
+      # Optional debug
       - name: List available apps
         run: |
-          ls apps/apps
+          ls -la apps/apps
 
-      # ✅ Setup Python
+      # Setup Python
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # ✅ Generate catalog + schemas
+      # Setup Go (required to install Pixlet)
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      # Install Pixlet
+      - name: Install Pixlet
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libwebp-dev
+          go install github.com/tronbyt/pixlet@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          "$HOME/go/bin/pixlet" version || "$HOME/go/bin/pixlet" --help
+
+      # Build catalog + schemas
       - name: Generate catalog
         run: |
           python scripts/build_catalog.py \
@@ -42,12 +56,28 @@ jobs:
             --allowed allowed_apps.txt \
             --output output
 
-      # ✅ Cleanup cloned repo so it doesn't get committed
+      # Render WEBP previews
+      # Your render_webp.py should:
+      # - always generate default.webp
+      # - always generate default_2x.webp
+      # - generate extra variants from render_variants.json
+      # - write output/webp/index.json
+      # - continue if one app/variant fails when --continue-on-error is passed
+      - name: Render WEBP files
+        run: |
+          python scripts/render_webp.py \
+            --community apps/apps \
+            --allowed allowed_apps.txt \
+            --variants render_variants.json \
+            --output output/webp \
+            --continue-on-error
+
+      # Cleanup cloned community repo so it doesn't get committed
       - name: Cleanup workspace
         run: |
           rm -rf apps
 
-      # ✅ Commit only output folder
+      # Commit generated output only
       - name: Commit changes
         run: |
           git config user.name "catalog-bot"
@@ -58,6 +88,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            git commit -m "Update catalog"
+            git commit -m "Update catalog and webp previews"
             git push
           fi
