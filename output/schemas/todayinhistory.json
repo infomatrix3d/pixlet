@@ -1,0 +1,28 @@
+{
+  "name": "todayinhistory",
+  "configSchema": {
+    "title": {
+      "type": "string",
+      "label": "Title",
+      "description": "An alternate title for the application"
+    },
+    "show_births": {
+      "type": "boolean",
+      "label": "Show Births",
+      "description": "Pick from births when deciding what to show",
+      "default": true
+    },
+    "show_deaths": {
+      "type": "boolean",
+      "label": "Show Deaths",
+      "description": "Pick from deaths when deciding what to show",
+      "default": true
+    },
+    "show_events": {
+      "type": "boolean",
+      "label": "Show Events",
+      "description": "Pick from events when deciding what to show",
+      "default": true
+    }
+  }
+}

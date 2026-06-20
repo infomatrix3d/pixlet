@@ -434,18 +434,23 @@
       }
     },
     {
-      "name": "fuzzyclock",
+      "name": "worldcuptoday",
       "configSchema": {
-        "location": {
+        "team_sequence": {
           "type": "string",
-          "label": "Location",
-          "description": "Location for which to display time"
+          "label": "Display which team first?"
         },
-        "dialect": {
+        "rotation_speed": {
           "type": "string",
-          "label": "Language",
-          "description": "Language in which to display time",
-          "default": "dialectOptions[0].value"
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each game is displayed.",
+          "default": "rotation_options[2].value"
+        },
+        "is_24_hour_format": {
+          "type": "boolean",
+          "label": "24 Hour Format",
+          "description": "Display times in 24-hour format.",
+          "default": false
         }
       }
     },
@@ -511,6 +516,34 @@
           "label": "Prayer Calculation Method",
           "description": "A prayer times calculation method. Methods identify various schools of thought about how to compute the timings. If not specified, it defaults to Umm Al-Qura University, Makkah",
           "default": "4"
+        }
+      }
+    },
+    {
+      "name": "todayinhistory",
+      "configSchema": {
+        "title": {
+          "type": "string",
+          "label": "Title",
+          "description": "An alternate title for the application"
+        },
+        "show_births": {
+          "type": "boolean",
+          "label": "Show Births",
+          "description": "Pick from births when deciding what to show",
+          "default": true
+        },
+        "show_deaths": {
+          "type": "boolean",
+          "label": "Show Deaths",
+          "description": "Pick from deaths when deciding what to show",
+          "default": true
+        },
+        "show_events": {
+          "type": "boolean",
+          "label": "Show Events",
+          "description": "Pick from events when deciding what to show",
+          "default": true
         }
       }
     },

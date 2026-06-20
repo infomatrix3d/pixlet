@@ -1,0 +1,21 @@
+{
+  "name": "worldcuptoday",
+  "configSchema": {
+    "team_sequence": {
+      "type": "string",
+      "label": "Display which team first?"
+    },
+    "rotation_speed": {
+      "type": "string",
+      "label": "Rotation Speed",
+      "description": "Amount of seconds each game is displayed.",
+      "default": "rotation_options[2].value"
+    },
+    "is_24_hour_format": {
+      "type": "boolean",
+      "label": "24 Hour Format",
+      "description": "Display times in 24-hour format.",
+      "default": false
+    }
+  }
+}

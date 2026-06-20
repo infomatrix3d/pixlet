@@ -195,7 +195,20 @@
       "is_2x": true
     }
   ],
-  "motogp": [],
+  "motogp": [
+    {
+      "name": "default",
+      "file": "output/webp/motogp/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/motogp/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcup": [
     {
       "name": "default",
@@ -210,35 +223,17 @@
       "is_2x": true
     }
   ],
-  "fuzzyclock": [
+  "worldcuptoday": [
     {
       "name": "default",
-      "file": "output/webp/fuzzyclock/default.webp",
+      "file": "output/webp/worldcuptoday/default.webp",
       "config": {},
       "is_2x": false
     },
     {
       "name": "default_2x",
-      "file": "output/webp/fuzzyclock/default_2x.webp",
+      "file": "output/webp/worldcuptoday/default_2x.webp",
       "config": {},
-      "is_2x": true
-    },
-    {
-      "name": "est",
-      "file": "output/webp/fuzzyclock/est.webp",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "dialect": "en-US"
-      },
-      "is_2x": false
-    },
-    {
-      "name": "est_2x",
-      "file": "output/webp/fuzzyclock/est_2x.webp",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "dialect": "en-US"
-      },
       "is_2x": true
     }
   ],
@@ -318,6 +313,20 @@
     {
       "name": "default_2x",
       "file": "output/webp/prayer_times/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
+  "todayinhistory": [
+    {
+      "name": "default",
+      "file": "output/webp/todayinhistory/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/todayinhistory/default_2x.webp",
       "config": {},
       "is_2x": true
     }
