@@ -38,5 +38,21 @@
       },
       "is_2x": true
     }
+  ],
+    "analogclock": [
+    {
+      "name": "EST",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "EST_2x",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": true
+    }
   ]
 }
