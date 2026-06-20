@@ -20,33 +20,14 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/tronbyt/apps.git community-apps
 
-      - name: Prepare merged app sources
-        shell: bash
+      - name: List available community and custom apps
         run: |
-          set -euo pipefail
+          echo "=== Community apps ==="
+          ls -la community-apps/apps || true
 
-          rm -rf merged-apps
-          mkdir -p merged-apps
-
-          echo "Merging community apps from community-apps/apps ..."
-          if [ -d "community-apps/apps" ]; then
-            rsync -a community-apps/apps/ merged-apps/
-          else
-            echo "community-apps/apps not found"
-          fi
-
-          echo "Merging custom apps from repo /apps ..."
-          if [ -d "apps" ]; then
-            # Copy local apps last so custom apps override community apps if names clash
-            rsync -a apps/ merged-apps/
-          else
-            echo "No local /apps folder found in repo"
-          fi
-
-          echo "Merged app directories:"
-          find merged-apps -maxdepth 2 -type f | sort || true
-          echo "Top-level merged apps:"
-          ls -la merged-apps || true
+          echo
+          echo "=== Custom apps ==="
+          ls -la custom-apps || true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -64,7 +45,8 @@ jobs:
       - name: Generate catalog
         run: |
           python scripts/build_catalog.py \
-            --community merged-apps \
+            --community community-apps \
+            --custom custom-apps \
             --allowed allowed_apps.txt \
             --output output
 
@@ -74,7 +56,8 @@ jobs:
           STOCKS_API_TOKEN: ${{ secrets.STOCKS_API_TOKEN }}
         run: |
           python scripts/render_webp.py \
-            --community merged-apps \
+            --community community-apps \
+            --custom custom-apps \
             --allowed allowed_apps.txt \
             --variants render_variants.json \
             --output output/webp \
@@ -633,7 +616,7 @@ jobs:
 
       - name: Cleanup workspace
         run: |
-          rm -rf community-apps merged-apps
+          rm -rf community-apps
 
       - name: Commit and push results
         run: |
