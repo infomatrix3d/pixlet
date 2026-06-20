@@ -16,13 +16,13 @@ cflscores
 formula1
 motogp
 worldcup
+worldcuptoday
 
-fuzzyclock
 weather
 analogclock
 prayer_times
 
-
+todayinhistory
 bitcointicker
 
 
