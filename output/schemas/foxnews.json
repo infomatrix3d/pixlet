@@ -5,13 +5,13 @@
       "type": "string",
       "label": "News Section",
       "description": "Select which section to display",
-      "default": "\"latest\""
+      "default": "latest"
     },
     "articlecount": {
       "type": "string",
       "label": "Article Count",
       "description": "Select number of articles to display",
-      "default": "\"3\""
+      "default": "3"
     }
   }
 }

@@ -1,3 +1,541 @@
 {
-  "apps": []
+  "apps": [
+    {
+      "name": "skynews",
+      "configSchema": {
+        "feedchoice": {
+          "type": "string",
+          "label": "Choose your favourite feed",
+          "description": "Get news that\u2019s tailored to you.",
+          "default": "fsfeedchoice[0].value"
+        },
+        "fontsize": {
+          "type": "string",
+          "label": "Change the text size",
+          "description": "Prevent long words being cut off.",
+          "default": "fsoptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "espnnews",
+      "configSchema": {
+        "sport": {
+          "type": "string",
+          "label": "Sport",
+          "description": "The headlines of the sport to be displayed.",
+          "default": "All"
+        },
+        "speed": {
+          "type": "string",
+          "label": "Scroll Speed",
+          "description": "Change the speed that text scrolls.",
+          "default": "scroll_speed[-1].value"
+        },
+        "scroll_vertical": {
+          "type": "boolean",
+          "label": "Scroll Vertically?",
+          "description": "Should text scroll vertically?",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "newsmix",
+      "configSchema": {
+        "feed1": {
+          "type": "string",
+          "label": "First Feed",
+          "description": "Choose your first news feed"
+        },
+        "feed2": {
+          "type": "string",
+          "label": "Second Feed",
+          "description": "Choose your second news feed"
+        },
+        "feed3": {
+          "type": "string",
+          "label": "Third Feed",
+          "description": "Choose your third news feed"
+        },
+        "header_color": {
+          "type": "string",
+          "label": "Feed Name Color",
+          "description": "Color for the feed name header",
+          "default": "DEFAULT_COLORS[\"header\"]"
+        },
+        "headline_color": {
+          "type": "string",
+          "label": "Headline Color",
+          "description": "Color for news headlines",
+          "default": "DEFAULT_COLORS[\"headline\"]"
+        },
+        "desc_color": {
+          "type": "string",
+          "label": "Description Color",
+          "description": "Color for news descriptions",
+          "default": "DEFAULT_COLORS[\"desc\"]"
+        },
+        "scroll_speed": {
+          "type": "string",
+          "label": "Scroll Speed",
+          "description": "Speed of text scrolling",
+          "default": "75"
+        }
+      }
+    },
+    {
+      "name": "wsjnews",
+      "configSchema": {
+        "news_edition": {
+          "type": "string",
+          "label": "News Section",
+          "description": "Select which section to display",
+          "default": "RSSWorldNews"
+        },
+        "articlecount": {
+          "type": "string",
+          "label": "Article Count",
+          "description": "Select number of articles to display",
+          "default": "3"
+        }
+      }
+    },
+    {
+      "name": "financialtimes",
+      "configSchema": {
+        "news_edition": {
+          "type": "string",
+          "label": "News Page",
+          "description": "Select which page to display",
+          "default": "home"
+        },
+        "articlecount": {
+          "type": "string",
+          "label": "Article Count",
+          "description": "Select number of articles to display",
+          "default": "3"
+        }
+      }
+    },
+    {
+      "name": "abcnews",
+      "configSchema": {
+        "news": {
+          "type": "string",
+          "label": "News Feed",
+          "description": "Select your news feed",
+          "default": "NewsOptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "foxnews",
+      "configSchema": {
+        "news_edition": {
+          "type": "string",
+          "label": "News Section",
+          "description": "Select which section to display",
+          "default": "latest"
+        },
+        "articlecount": {
+          "type": "string",
+          "label": "Article Count",
+          "description": "Select number of articles to display",
+          "default": "3"
+        }
+      }
+    },
+    {
+      "name": "nhlstandings",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "divisionType": {
+          "type": "string",
+          "label": "Division",
+          "description": "Which division to display.",
+          "default": "divisionOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "teamsOptions": {
+          "type": "string",
+          "label": "Teams Per View",
+          "description": "How many teams it should show at once.",
+          "default": "teamsOptions[1].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "nbastandings",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "divisionType": {
+          "type": "string",
+          "label": "Division",
+          "description": "Which division to display.",
+          "default": "divisionOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "teamsOptions": {
+          "type": "string",
+          "label": "Teams Per View",
+          "description": "How many teams it should show at once.",
+          "default": "teamsOptions[1].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "nflstandings",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "divisionType": {
+          "type": "string",
+          "label": "Division",
+          "description": "Which division to display.",
+          "default": "divisionOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "teamsOptions": {
+          "type": "string",
+          "label": "Teams Per View",
+          "description": "How many teams it should show at once.",
+          "default": "teamsOptions[1].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "ncaawscores",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "selectedTeam": {
+          "type": "string",
+          "label": "Team Focus",
+          "description": "Only show scores for selected team.",
+          "default": "teamOptions[0].value"
+        },
+        "conferenceType": {
+          "type": "string",
+          "label": "Conference",
+          "description": "Which conference to display.",
+          "default": "conferenceOptions[0].value"
+        },
+        "displayRanking": {
+          "type": "boolean",
+          "label": "Show Top 25 Rank",
+          "description": "A toggle to display the top 25 ranking.",
+          "default": true
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "displayType": {
+          "type": "string",
+          "label": "Display Type",
+          "description": "Style of how the scores are displayed.",
+          "default": "displayOptions[0].value"
+        },
+        "pregameDisplay": {
+          "type": "string",
+          "label": "Pre-Game",
+          "description": "What to display in the score area if the game hasn't started.",
+          "default": "pregameOptions[0].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "cflscores",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time."
+        },
+        "selectedTeam": {
+          "type": "string",
+          "label": "Team Focus",
+          "description": "Only show scores for selected team.",
+          "default": "teamOptions[0].value"
+        },
+        "rotationSpeed": {
+          "type": "string",
+          "label": "Rotation Speed",
+          "description": "Amount of seconds each score is displayed.",
+          "default": "rotationOptions[2].value"
+        },
+        "displayType": {
+          "type": "string",
+          "label": "Display Type",
+          "description": "Style of how the scores are displayed.",
+          "default": "displayOptions[0].value"
+        },
+        "pregameDisplay": {
+          "type": "string",
+          "label": "Pre-Game",
+          "description": "What to display in the score area if the game hasn't started.",
+          "default": "pregameOptions[0].value"
+        },
+        "displayTop": {
+          "type": "string",
+          "label": "Top Display",
+          "description": "A toggle of what to display on the top shelf.",
+          "default": "displayTopOptions[0].value"
+        },
+        "displayTimeColor": {
+          "type": "string",
+          "label": "Top Display Color",
+          "description": "Select which color you want the top display to be.",
+          "default": "colorOptions[5].value"
+        }
+      }
+    },
+    {
+      "name": "formula1",
+      "configSchema": {
+        "F1_Information": {
+          "type": "string",
+          "label": "F1 Information",
+          "description": "Select which info you want",
+          "default": "DEFAULTS[\"display\"]"
+        },
+        "generated": {
+          "type": "string"
+        },
+        "time_24": {
+          "type": "boolean",
+          "label": "24 hour format",
+          "description": "Display the time in 24 hour format.",
+          "default": "DEFAULTS[\"time_24\"]"
+        },
+        "date_us": {
+          "type": "boolean",
+          "label": "US Date format",
+          "description": "Display the date in US format.",
+          "default": "DEFAULTS[\"date_us\"]"
+        }
+      }
+    },
+    {
+      "name": "motogp",
+      "configSchema": {}
+    },
+    {
+      "name": "worldcup",
+      "configSchema": {
+        "followed_country": {
+          "type": "string",
+          "label": "Country to Follow",
+          "description": "Choose the country you want to track.",
+          "default": "DEFAULT_COUNTRY"
+        },
+        "team_sequence": {
+          "type": "string",
+          "label": "Display which team first?"
+        },
+        "hide_scores": {
+          "type": "boolean",
+          "label": "Hide Scores",
+          "description": "Hide match scores to avoid spoilers.",
+          "default": false
+        },
+        "is_24_hour_format": {
+          "type": "boolean",
+          "label": "24 Hour Format",
+          "description": "Display times in 24-hour format.",
+          "default": false
+        },
+        "is_us_date_format": {
+          "type": "boolean",
+          "label": "US Date Format",
+          "description": "Display dates as MM/DD instead of DD/MM.",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "fuzzyclock",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time"
+        },
+        "dialect": {
+          "type": "string",
+          "label": "Language",
+          "description": "Language in which to display time",
+          "default": "dialectOptions[0].value"
+        }
+      }
+    },
+    {
+      "name": "weather",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for the display of the weather."
+        },
+        "showthreeday": {
+          "type": "boolean",
+          "label": "Show Three Day Forecast",
+          "description": "Toggle between three day and single day display.",
+          "default": true
+        },
+        "units": {
+          "type": "string",
+          "label": "Units",
+          "description": "Display units.",
+          "default": "options[0].value"
+        },
+        "api_v3": {
+          "type": "string"
+        },
+        "api_v2": {
+          "type": "string",
+          "label": "OpenWeather API 2.5 Key"
+        },
+        "cache_mins": {
+          "type": "string",
+          "label": "Cache Duration"
+        },
+        "force_1x_images": {
+          "type": "boolean",
+          "label": "Force 1x Images",
+          "description": "The two-day forecast images have been upscaled to 2x. Enable this if you prefer the crispier look of the 1x images.",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "analogclock",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display time"
+        }
+      }
+    },
+    {
+      "name": "prayer_times",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display prayer times"
+        },
+        "method": {
+          "type": "string",
+          "label": "Prayer Calculation Method",
+          "description": "A prayer times calculation method. Methods identify various schools of thought about how to compute the timings. If not specified, it defaults to Umm Al-Qura University, Makkah",
+          "default": "4"
+        }
+      }
+    },
+    {
+      "name": "bitcointicker",
+      "configSchema": {
+        "currency": {
+          "type": "string",
+          "label": "Currency",
+          "description": "Show price in this currency.",
+          "default": "currency_options[0].value"
+        },
+        "period": {
+          "type": "string",
+          "label": "Period",
+          "description": "Show chart in this period.",
+          "default": "period_options[0].value"
+        },
+        "show_currency_abbriviation": {
+          "type": "boolean",
+          "label": "Show currency abbriviation?",
+          "description": "Enable this option to show the currency abbriviation.",
+          "default": true
+        }
+      }
+    }
+  ]
 }

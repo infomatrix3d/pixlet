@@ -38,7 +38,7 @@
       "type": "string",
       "label": "Scroll Speed",
       "description": "Speed of text scrolling",
-      "default": "\"75\""
+      "default": "75"
     }
   }
 }

@@ -10,7 +10,7 @@
       "type": "string",
       "label": "Prayer Calculation Method",
       "description": "A prayer times calculation method. Methods identify various schools of thought about how to compute the timings. If not specified, it defaults to Umm Al-Qura University, Makkah",
-      "default": "\"4\""
+      "default": "4"
     }
   }
 }

@@ -5,7 +5,7 @@
       "type": "string",
       "label": "Sport",
       "description": "The headlines of the sport to be displayed.",
-      "default": "\"All\""
+      "default": "All"
     },
     "speed": {
       "type": "string",
