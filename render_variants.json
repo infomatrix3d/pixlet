@@ -39,7 +39,7 @@
       "is_2x": true
     }
   ],
-    "analogclock": [
+  "analogclock": [
     {
       "name": "EST",
       "config": {
@@ -53,6 +53,36 @@
         "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
       },
       "is_2x": true
+    }
+  ],
+  "prayer_times": [
+    {
+      "name": "Toronto",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "Toronto_2x",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "NewYork_2x",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "NewYork",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
+      },
+      "is_2x": false
     }
   ]
 }
