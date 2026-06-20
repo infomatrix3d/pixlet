@@ -195,14 +195,7 @@
       "is_2x": true
     }
   ],
-  "motogp": [
-    {
-      "name": "default",
-      "file": "output/webp/motogp/default.webp",
-      "config": {},
-      "is_2x": false
-    }
-  ],
+  "motogp": [],
   "worldcup": [
     {
       "name": "default",
@@ -296,6 +289,22 @@
       "name": "default_2x",
       "file": "output/webp/analogclock/default_2x.webp",
       "config": {},
+      "is_2x": true
+    },
+    {
+      "name": "est",
+      "file": "output/webp/analogclock/est.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "est_2x",
+      "file": "output/webp/analogclock/est_2x.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
       "is_2x": true
     }
   ],
