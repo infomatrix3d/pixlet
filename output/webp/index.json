@@ -201,12 +201,6 @@
       "file": "output/webp/motogp/default.webp",
       "config": {},
       "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/motogp/default_2x.webp",
-      "config": {},
-      "is_2x": true
     }
   ],
   "worldcup": [
@@ -315,6 +309,38 @@
       "file": "output/webp/prayer_times/default_2x.webp",
       "config": {},
       "is_2x": true
+    },
+    {
+      "name": "toronto",
+      "file": "output/webp/prayer_times/toronto.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": false
+    },
+    {
+      "name": "toronto_2x",
+      "file": "output/webp/prayer_times/toronto_2x.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "newyork_2x",
+      "file": "output/webp/prayer_times/newyork_2x.webp",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
+      },
+      "is_2x": true
+    },
+    {
+      "name": "newyork",
+      "file": "output/webp/prayer_times/newyork.webp",
+      "config": {
+        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
+      },
+      "is_2x": false
     }
   ],
   "todayinhistory": [
