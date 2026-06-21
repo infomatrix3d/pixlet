@@ -195,21 +195,8 @@
       "is_2x": true
     }
   ],
-  "motogp": [
-    {
-      "name": "default",
-      "file": "output/webp/motogp/default.webp",
-      "config": {},
-      "is_2x": false
-    }
-  ],
+  "motogp": [],
   "worldcup": [
-    {
-      "name": "default",
-      "file": "output/webp/worldcup/default.webp",
-      "config": {},
-      "is_2x": false
-    },
     {
       "name": "default_2x",
       "file": "output/webp/worldcup/default_2x.webp",
