@@ -195,14 +195,7 @@
       "is_2x": true
     }
   ],
-  "motogp": [
-    {
-      "name": "default_2x",
-      "file": "output/webp/motogp/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "motogp": [],
   "worldcup": [
     {
       "name": "default",
