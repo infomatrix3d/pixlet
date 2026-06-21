@@ -83,7 +83,20 @@
       "is_2x": true
     }
   ],
-  "abcnews": [],
+  "abcnews": [
+    {
+      "name": "default",
+      "file": "output/webp/abcnews/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/abcnews/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "foxnews": [
     {
       "name": "default",
@@ -188,6 +201,12 @@
       "file": "output/webp/motogp/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/motogp/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "worldcup": [
