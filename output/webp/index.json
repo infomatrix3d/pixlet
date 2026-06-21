@@ -43,6 +43,12 @@
   ],
   "hackernews": [
     {
+      "name": "default",
+      "file": "output/webp/hackernews/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/hackernews/default_2x.webp",
       "config": {},
@@ -153,9 +159,21 @@
       "file": "output/webp/ncaawscores/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/ncaawscores/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "cflscores": [
+    {
+      "name": "default",
+      "file": "output/webp/cflscores/default.webp",
+      "config": {},
+      "is_2x": false
+    },
     {
       "name": "default_2x",
       "file": "output/webp/cflscores/default_2x.webp",
@@ -177,14 +195,7 @@
       "is_2x": true
     }
   ],
-  "motogp": [
-    {
-      "name": "default",
-      "file": "output/webp/motogp/default.webp",
-      "config": {},
-      "is_2x": false
-    }
-  ],
+  "motogp": [],
   "worldcup": [
     {
       "name": "default",
@@ -236,6 +247,17 @@
         "api_v2": "$WEATHER_API_KEY"
       },
       "is_2x": false
+    },
+    {
+      "name": "toronto_metric_2x",
+      "file": "output/webp/weather/toronto_metric_2x.webp",
+      "config": {
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
+        "units": "metric",
+        "showthreeday": false,
+        "api_v2": "$WEATHER_API_KEY"
+      },
+      "is_2x": true
     }
   ],
   "analogclock": [
@@ -269,6 +291,12 @@
     }
   ],
   "prayer_times": [
+    {
+      "name": "default",
+      "file": "output/webp/prayer_times/default.webp",
+      "config": {},
+      "is_2x": false
+    },
     {
       "name": "default_2x",
       "file": "output/webp/prayer_times/default_2x.webp",
