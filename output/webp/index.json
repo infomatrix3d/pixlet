@@ -169,6 +169,12 @@
   ],
   "cflscores": [
     {
+      "name": "default",
+      "file": "output/webp/cflscores/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/cflscores/default_2x.webp",
       "config": {},
@@ -189,20 +195,7 @@
       "is_2x": true
     }
   ],
-  "motogp": [
-    {
-      "name": "default",
-      "file": "output/webp/motogp/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/motogp/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "motogp": [],
   "worldcup": [
     {
       "name": "default",
@@ -218,6 +211,12 @@
     }
   ],
   "worldcuptoday": [
+    {
+      "name": "default",
+      "file": "output/webp/worldcuptoday/default.webp",
+      "config": {},
+      "is_2x": false
+    },
     {
       "name": "default_2x",
       "file": "output/webp/worldcuptoday/default_2x.webp",
