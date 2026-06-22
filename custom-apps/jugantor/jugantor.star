@@ -3,7 +3,7 @@ load("http.star", "http")
 
 # Replace this with your actual Vercel deployment URL
 # Swap "jugantor" out for "samakal" or "mzamin" to change sources
-API_URL = "https://your-project.vercel.app/api/jugantor"
+API_URL = "https://mzamin.vercel.app/api/jugantor"
 
 def main():
     # 1. Fetch live news array from your Vercel API
