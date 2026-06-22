@@ -25,5 +25,6 @@ prayer_times
 
 todayinhistory
 bitcointicker
+jugantor
 
 
