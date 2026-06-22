@@ -195,7 +195,20 @@
       "is_2x": true
     }
   ],
-  "motogp": [],
+  "motogp": [
+    {
+      "name": "default",
+      "file": "output/webp/motogp/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/motogp/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcup": [
     {
       "name": "default",
@@ -360,6 +373,20 @@
     {
       "name": "default_2x",
       "file": "output/webp/bitcointicker/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
+  "jugantor": [
+    {
+      "name": "default",
+      "file": "output/webp/jugantor/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/jugantor/default_2x.webp",
       "config": {},
       "is_2x": true
     }
