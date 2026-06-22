@@ -14,7 +14,7 @@ nflstandings
 ncaawscores
 cflscores
 formula1
-motogp
+
 worldcup
 worldcuptoday
 
