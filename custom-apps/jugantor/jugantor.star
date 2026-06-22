@@ -14,13 +14,17 @@ def main(config):
 
     data = response.json()
 
+    if "error" in data:
+        return render.Root(
+            child = render.Text(content = "Font/API Err", color = "#ff0")
+        )
+
     if "image_base64" not in data:
         return render.Root(
             child = render.Text(content = "Data Error", color = "#ff0")
         )
 
     image_bytes = base64.decode(data["image_base64"])
-    img_height = data.get("height", 32)
 
     return render.Root(
         delay = 120,
