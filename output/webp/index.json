@@ -117,6 +117,12 @@
       "file": "output/webp/nhlstandings/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/nhlstandings/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "nbastandings": [
@@ -189,7 +195,20 @@
       "is_2x": true
     }
   ],
-  "motogp": [],
+  "motogp": [
+    {
+      "name": "default",
+      "file": "output/webp/motogp/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/motogp/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcup": [
     {
       "name": "default",
