@@ -9,19 +9,19 @@ def main(config):
 
     if response.status_code != 200:
         return render.Root(
-            child = render.Text(content = "API Error", color = "#f00")
+            child = render.Text(content = "API Error", color = "#ff0000")
         )
 
     data = response.json()
 
     if "error" in data:
         return render.Root(
-            child = render.Text(content = "Font/API Err", color = "#ff0")
+            child = render.Text(content = "API/Font Error", color = "#ffff00")
         )
 
     if "image_base64" not in data:
         return render.Root(
-            child = render.Text(content = "Data Error", color = "#ff0")
+            child = render.Text(content = "Data Error", color = "#ffff00")
         )
 
     image_bytes = base64.decode(data["image_base64"])
