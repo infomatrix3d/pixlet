@@ -397,10 +397,6 @@
       }
     },
     {
-      "name": "motogp",
-      "configSchema": {}
-    },
-    {
       "name": "worldcup",
       "configSchema": {
         "followed_country": {
