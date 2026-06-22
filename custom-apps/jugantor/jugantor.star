@@ -16,7 +16,7 @@ def main(config):
 
     if "error" in data:
         return render.Root(
-            child = render.Text(content = "API/Font Error", color = "#ffff00")
+            child = render.Text(content = "SVG->PNG Err", color = "#ffff00")
         )
 
     if "image_base64" not in data:
