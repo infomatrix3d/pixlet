@@ -125,20 +125,7 @@
       "is_2x": true
     }
   ],
-  "nbastandings": [
-    {
-      "name": "default",
-      "file": "output/webp/nbastandings/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/nbastandings/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "nbastandings": [],
   "nflstandings": [
     {
       "name": "default",
