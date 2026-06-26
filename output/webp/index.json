@@ -1,18 +1,5 @@
 {
-  "skynews": [
-    {
-      "name": "default",
-      "file": "output/webp/skynews/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/skynews/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "skynews": [],
   "espnnews": [
     {
       "name": "default",
@@ -83,20 +70,7 @@
       "is_2x": true
     }
   ],
-  "abcnews": [
-    {
-      "name": "default",
-      "file": "output/webp/abcnews/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/abcnews/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "abcnews": [],
   "nhlstandings": [
     {
       "name": "default",
