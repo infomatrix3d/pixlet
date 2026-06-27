@@ -1,7 +1,6 @@
 skynews
 espnnews
 newsmix
-hackernews
 wsjnews
 financialtimes
 abcnews
