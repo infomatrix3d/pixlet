@@ -307,16 +307,16 @@
       "is_2x": false
     }
   ],
-  "nws_live_forecast": [
+  "openweatherforecast": [
     {
       "name": "default",
-      "file": "output/webp/nws_live_forecast/default.webp",
+      "file": "output/webp/openweatherforecast/default.webp",
       "config": {},
       "is_2x": false
     },
     {
       "name": "default_2x",
-      "file": "output/webp/nws_live_forecast/default_2x.webp",
+      "file": "output/webp/openweatherforecast/default_2x.webp",
       "config": {},
       "is_2x": true
     }

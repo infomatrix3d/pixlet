@@ -499,18 +499,22 @@
       }
     },
     {
-      "name": "nws_live_forecast",
+      "name": "openweatherforecast",
       "configSchema": {
-        "location": {
+        "openweather_api_key": {
           "type": "string",
-          "label": "Location",
-          "description": "Location for which to display weather data."
+          "label": "OpenWeather API Key",
+          "description": "Your API key from https://home.openweathermap.org/api_keys"
         },
-        "units": {
+        "zip_code": {
           "type": "string",
-          "label": "Units",
-          "description": "Units to display temperature in, either Fahrenheit, Celsius, or Kelvin.",
-          "default": "DEFAULT_UNITS"
+          "label": "ZIP Code"
+        },
+        "units_celsius": {
+          "type": "boolean",
+          "label": "Use Celsius",
+          "description": "Display temperatures in \u00b0C instead of \u00b0F",
+          "default": false
         }
       }
     },
