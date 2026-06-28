@@ -307,6 +307,20 @@
       "is_2x": false
     }
   ],
+  "nws_live_forecast": [
+    {
+      "name": "default",
+      "file": "output/webp/nws_live_forecast/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/nws_live_forecast/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "todayinhistory": [
     {
       "name": "default",

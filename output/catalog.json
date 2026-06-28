@@ -499,6 +499,22 @@
       }
     },
     {
+      "name": "nws_live_forecast",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display weather data."
+        },
+        "units": {
+          "type": "string",
+          "label": "Units",
+          "description": "Units to display temperature in, either Fahrenheit, Celsius, or Kelvin.",
+          "default": "DEFAULT_UNITS"
+        }
+      }
+    },
+    {
       "name": "todayinhistory",
       "configSchema": {
         "title": {
