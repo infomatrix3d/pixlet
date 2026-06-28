@@ -404,8 +404,9 @@ jobs:
               <div class="hero">
                 <div>
                   <h1>📺 InfoMatrix App Catalog</h1>
+                   <p>Free demo apps</p>
                 </div>
-                <p>Free demo apps</p>
+               
 
                 <div class="toolbar">
                   <input id="searchInput" class="search" type="text" placeholder="Search apps..." />
