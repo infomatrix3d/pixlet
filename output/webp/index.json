@@ -69,7 +69,14 @@
       "is_2x": true
     }
   ],
-  "abcnews": [],
+  "abcnews": [
+    {
+      "name": "default_2x",
+      "file": "output/webp/abcnews/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "nhlstandings": [
     {
       "name": "default",
