@@ -25,14 +25,14 @@
     {
       "name": "toronto_metric",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"timezone\":\"America/Toronto\"}"
       },
       "is_2x": false
     },
     {
       "name": "toronto_metric_2x",
       "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
+        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"timezone\":\"America/Toronto\"}"
       },
       "is_2x": true
     }
