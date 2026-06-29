@@ -21,6 +21,7 @@ weather
 analogclock
 prayer_times
 weathersnapshot
+daynightmap
 
 
 todayinhistory
