@@ -169,6 +169,12 @@
   ],
   "worldcup": [
     {
+      "name": "default",
+      "file": "output/webp/worldcup/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/worldcup/default_2x.webp",
       "config": {},
@@ -371,18 +377,5 @@
       "is_2x": true
     }
   ],
-  "gotracker": [
-    {
-      "name": "default",
-      "file": "output/webp/gotracker/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/gotracker/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ]
+  "gotracker": []
 }
