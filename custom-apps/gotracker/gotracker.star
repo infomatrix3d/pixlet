@@ -1,136 +1,195 @@
 load("render.star", "render")
 load("http.star", "http")
-load("bsoup.star", "bsoup")
 
-BASE_URL = "https://www.gotracker.ca/gotracker/mobile/StationDeparture/%s/%s"
+API_URL = "https://www.gotracker.ca/gotracker/mobile/proxy/web/Messages/Signage/Rail/%s/%s"
 
 DEFAULT_LINE = "LE"
 DEFAULT_STATION = "GU"
 
-
-def clean(s):
-    if s == None:
-        return ""
-
-    # Normalize whitespace.
-    parts = str(s).split()
-    return " ".join(parts)
+# Options:
+#   "Inbound"
+#   "Outbound"
+#   "Both"
+DEFAULT_DIRECTION = "Both"
 
 
-def fetch_html(line, station):
-    url = BASE_URL % (line, station)
+def pad2(n):
+    if n < 10:
+        return "0%d" % n
+    return "%d" % n
+
+
+def time_part(iso):
+    # Input example: 2026-06-29T12:28:47
+    if iso == None or len(iso) < 16:
+        return "?"
+    return iso[11:16]
+
+
+def minutes_from_iso(iso):
+    if iso == None or len(iso) < 16:
+        return 0
+
+    h = int(iso[11:13])
+    m = int(iso[14:16])
+
+    return h * 60 + m
+
+
+def delay_text(scheduled, actual):
+    sched_min = minutes_from_iso(scheduled)
+    actual_min = minutes_from_iso(actual)
+
+    diff = actual_min - sched_min
+
+    if diff <= 1 and diff >= -1:
+        return "On Time"
+
+    if diff > 1:
+        return "+%d min" % diff
+
+    return "%d min" % diff
+
+
+def status_color(status):
+    s = status.lower()
+
+    if "cancel" in s:
+        return "#f00"
+
+    if "+" in s or "delay" in s:
+        return "#ff0"
+
+    return "#0f0"
+
+
+def short_destination(dest):
+    if dest == "DC Oshawa GO":
+        return "Oshawa"
+
+    if dest == "Union":
+        return "Union"
+
+    if len(dest) > 12:
+        return dest[:12]
+
+    return dest
+
+
+def direction_label(direction):
+    if direction == "Inbound":
+        return "WB"
+
+    if direction == "Outbound":
+        return "EB"
+
+    return direction[:2]
+
+
+def fetch_departures(line, station):
+    url = API_URL % (line, station)
 
     res = http.get(
         url,
-        ttl_seconds = 60,  # cache for 1 minute; be polite to the site
+        ttl_seconds = 60,
     )
 
     if res.status_code != 200:
-        fail("GO Tracker request failed with status %d" % res.status_code)
+        fail("GO Tracker API failed: %d" % res.status_code)
 
-    return res.body()
+    data = res.json()
+
+    if data.get("errCode") != 0:
+        fail("GO Tracker API error: %s" % data.get("errMsg"))
+
+    return data
 
 
-def parse_departures(html):
-    soup = bsoup.parseHtml(html)
+def flatten_departures(data, wanted_direction):
+    trips = []
 
-    departures = []
+    for direction in data.get("directions", []):
+        dir_name = direction.get("direction")
 
-    # GO Tracker commonly exposes rows as table rows.
-    rows = soup.find_all("tr")
-
-    for row in rows:
-        cells = []
-
-        # Collect table header/data cells.
-        for cell in row.find_all("th"):
-            txt = clean(cell.get_text())
-            if txt != "":
-                cells.append(txt)
-
-        for cell in row.find_all("td"):
-            txt = clean(cell.get_text())
-            if txt != "":
-                cells.append(txt)
-
-        if len(cells) < 4:
+        if wanted_direction != "Both" and dir_name != wanted_direction:
             continue
 
-        row_text = " ".join(cells).lower()
+        for trip in direction.get("tripMessages", []):
+            scheduled = trip.get("scheduled")
+            actual = trip.get("actual")
 
-        # Skip header rows.
-        if "destination" in row_text and "scheduled" in row_text:
-            continue
+            status = delay_text(scheduled, actual)
 
-        # Expected shape:
-        # Destination | Scheduled | Platform | Expected | Notes...
-        departures.append({
-            "destination": cells[0],
-            "scheduled": cells[1],
-            "platform": cells[2],
-            "expected": cells[3],
-            "notes": " ".join(cells[4:]) if len(cells) > 4 else "",
-        })
+            trips.append({
+                "direction": dir_name,
+                "destination": trip.get("destination") or "?",
+                "scheduled": scheduled,
+                "actual": actual,
+                "track": trip.get("track") or "?",
+                "tripName": trip.get("tripName") or "",
+                "coachCount": trip.get("coachCount") or 0,
+                "isExpress": trip.get("isExpress") or False,
+                "status": status,
+            })
 
-    return departures
+    return trips
 
 
-def departure_slide(line, station, d):
-    title = "%s/%s" % (line, station)
+def trip_slide(line, station, trip):
+    dest = short_destination(trip["destination"])
+    sched = time_part(trip["scheduled"])
+    actual = time_part(trip["actual"])
+    track = trip["track"]
+    status = trip["status"]
+    coaches = trip["coachCount"]
 
-    platform = d["platform"]
-    if platform == "" or platform == "-":
-        platform = "?"
-
-    status_color = "#0f0"
-    if "delay" in d["expected"].lower():
-        status_color = "#ff0"
-    if "cancel" in d["expected"].lower():
-        status_color = "#f00"
+    express = ""
+    if trip["isExpress"]:
+        express = " EXP"
 
     return render.Box(
         color = "#000",
         child = render.Column(
             children = [
                 render.Text(
-                    content = title,
+                    content = "%s %s/%s" % (direction_label(trip["direction"]), line, station),
                     font = "tom-thumb",
                     color = "#888",
                 ),
                 render.Text(
-                    content = d["destination"],
+                    content = dest,
                     font = "6x10",
                     color = "#fff",
                 ),
                 render.Text(
-                    content = d["scheduled"] + "  P" + platform,
+                    content = "%s P%s" % (sched, track),
                     font = "6x10",
                     color = "#0cf",
                 ),
                 render.Text(
-                    content = d["expected"],
+                    content = "%s %sC%s" % (status, coaches, express),
                     font = "tom-thumb",
-                    color = status_color,
+                    color = status_color(status),
                 ),
             ],
         ),
     )
 
 
-def error_slide(message):
+def no_trips_slide(line, station):
     return render.Root(
         child = render.Box(
             color = "#000",
             child = render.Column(
                 children = [
                     render.Text(
-                        content = "GO Tracker",
+                        content = "%s/%s" % (line, station),
                         font = "6x10",
                         color = "#0cf",
                     ),
                     render.Text(
-                        content = message,
-                        font = "tom-thumb",
+                        content = "No trips",
+                        font = "6x10",
                         color = "#f66",
                     ),
                 ],
@@ -142,24 +201,23 @@ def error_slide(message):
 def main(config):
     line = config.get("line") or DEFAULT_LINE
     station = config.get("station") or DEFAULT_STATION
+    wanted_direction = config.get("direction") or DEFAULT_DIRECTION
 
-    line = line.upper()
-    station = station.upper()
+    data = fetch_departures(line, station)
+    trips = flatten_departures(data, wanted_direction)
 
-    html = fetch_html(line, station)
-    departures = parse_departures(html)
+    if len(trips) == 0:
+        return no_trips_slide(line, station)
 
-    if len(departures) == 0:
-        return error_slide("No trips found")
-
-    # Show up to first 3 departures as rotating frames.
     slides = []
-    count = len(departures)
-    if count > 3:
-        count = 3
+
+    # Show first 4 trips as rotating frames.
+    count = len(trips)
+    if count > 4:
+        count = 4
 
     for i in range(count):
-        slides.append(departure_slide(line, station, departures[i]))
+        slides.append(trip_slide(line, station, trips[i]))
 
     return render.Root(
         delay = 5000,
