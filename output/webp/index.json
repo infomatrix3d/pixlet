@@ -324,7 +324,7 @@
       "name": "toronto_metric",
       "file": "output/webp/openweatherforecast/toronto_metric.webp",
       "config": {
-        "zip_code": "M1C3V4",
+        "zip_code": "M1C3V4,CA",
         "openweather_api_key": "$WEATHER_API_KEY"
       },
       "is_2x": false
@@ -333,7 +333,7 @@
       "name": "toronto_metric_2x",
       "file": "output/webp/openweatherforecast/toronto_metric_2x.webp",
       "config": {
-        "zip_code": "M1C3V4",
+        "zip_code": "M1C3V4,CA",
         "openweather_api_key": "$WEATHER_API_KEY"
       },
       "is_2x": true
