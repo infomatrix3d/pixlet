@@ -1,5 +1,6 @@
 load("render.star", "render")
 load("http.star", "http")
+load("encoding/json.star", "json")
 
 URL = "https://www.gotracker.ca/gotracker/mobile/proxy/web/Messages/Signage/Rail/LE/GU"
 
@@ -15,7 +16,9 @@ def main():
             ),
         )
 
-    data = res.json()
+    body = res.body()
+    data = json.decode(body)
+
     directions = data["directions"]
 
     total = 0
