@@ -499,26 +499,6 @@
       }
     },
     {
-      "name": "openweatherforecast",
-      "configSchema": {
-        "openweather_api_key": {
-          "type": "string",
-          "label": "OpenWeather API Key",
-          "description": "Your API key from https://home.openweathermap.org/api_keys"
-        },
-        "zip_code": {
-          "type": "string",
-          "label": "ZIP Code"
-        },
-        "units_celsius": {
-          "type": "boolean",
-          "label": "Use Celsius",
-          "description": "Display temperatures in \u00b0C instead of \u00b0F",
-          "default": false
-        }
-      }
-    },
-    {
       "name": "todayinhistory",
       "configSchema": {
         "title": {
