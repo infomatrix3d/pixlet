@@ -22,7 +22,7 @@ analogclock
 prayer_times
 weathersnapshot
 daynightmap
-
+daystoxmas
 
 todayinhistory
 bitcointicker
