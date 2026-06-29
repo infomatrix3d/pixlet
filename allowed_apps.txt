@@ -20,7 +20,7 @@ worldcuptoday
 weather
 analogclock
 prayer_times
-openweatherforecast
+
 
 todayinhistory
 bitcointicker
