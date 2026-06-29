@@ -519,6 +519,40 @@
       }
     },
     {
+      "name": "daynightmap",
+      "configSchema": {
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for the display of date/time."
+        },
+        "center_location": {
+          "type": "boolean",
+          "label": "Center On Location",
+          "description": "Whether to center the map on the location.",
+          "default": false
+        },
+        "time_format": {
+          "type": "string",
+          "label": "Time Format",
+          "description": "The format used for the time.",
+          "default": "omit"
+        },
+        "blink_time": {
+          "type": "boolean",
+          "label": "Blinking Time Separator",
+          "description": "Whether to blink the colon between hours and minutes.",
+          "default": false
+        },
+        "show_date": {
+          "type": "boolean",
+          "label": "Date Overlay",
+          "description": "Whether the date overlay should be shown.",
+          "default": false
+        }
+      }
+    },
+    {
       "name": "todayinhistory",
       "configSchema": {
         "title": {
