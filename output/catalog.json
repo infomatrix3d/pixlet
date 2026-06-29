@@ -499,6 +499,26 @@
       }
     },
     {
+      "name": "weathersnapshot",
+      "configSchema": {
+        "api_key": {
+          "type": "string",
+          "label": "API Key"
+        },
+        "location": {
+          "type": "string",
+          "label": "Location",
+          "description": "Location for which to display the weather"
+        },
+        "temperature_display": {
+          "type": "string",
+          "label": "Temperature Display",
+          "description": "The temperature units to display",
+          "default": "temperature_display_options[0].value"
+        }
+      }
+    },
+    {
       "name": "todayinhistory",
       "configSchema": {
         "title": {

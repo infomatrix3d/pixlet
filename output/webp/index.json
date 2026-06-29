@@ -307,6 +307,20 @@
       "is_2x": false
     }
   ],
+  "weathersnapshot": [
+    {
+      "name": "default",
+      "file": "output/webp/weathersnapshot/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/weathersnapshot/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "todayinhistory": [
     {
       "name": "default",
