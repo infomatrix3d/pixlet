@@ -20,6 +20,7 @@ worldcuptoday
 weather
 analogclock
 prayer_times
+weathersnapshot
 
 
 todayinhistory
