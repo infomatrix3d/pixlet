@@ -5,70 +5,44 @@ API_URL = "https://www.gotracker.ca/gotracker/mobile/proxy/web/Messages/Signage/
 
 DEFAULT_LINE = "LE"
 DEFAULT_STATION = "GU"
-
-# Options:
-#   "Inbound"
-#   "Outbound"
-#   "Both"
 DEFAULT_DIRECTION = "Both"
 
 
-def pad2(n):
-    if n < 10:
-        return "0%d" % n
-    return "%d" % n
-
-
 def time_part(iso):
-    # Input example: 2026-06-29T12:28:47
-    if iso == None or len(iso) < 16:
+    # Example: 2026-06-29T12:28:47
+    if iso == None:
+        return "?"
+    if len(iso) < 16:
         return "?"
     return iso[11:16]
 
 
-def minutes_from_iso(iso):
-    if iso == None or len(iso) < 16:
-        return 0
+def is_delayed(scheduled, actual):
+    # Very simple check: if scheduled HH:MM != actual HH:MM, call it updated.
+    if scheduled == None or actual == None:
+        return False
 
-    h = int(iso[11:13])
-    m = int(iso[14:16])
-
-    return h * 60 + m
+    return time_part(scheduled) != time_part(actual)
 
 
-def delay_text(scheduled, actual):
-    sched_min = minutes_from_iso(scheduled)
-    actual_min = minutes_from_iso(actual)
-
-    diff = actual_min - sched_min
-
-    if diff <= 1 and diff >= -1:
-        return "On Time"
-
-    if diff > 1:
-        return "+%d min" % diff
-
-    return "%d min" % diff
+def get_status(scheduled, actual):
+    if is_delayed(scheduled, actual):
+        return "Updated"
+    return "On Time"
 
 
-def status_color(status):
-    s = status.lower()
-
-    if "cancel" in s:
-        return "#f00"
-
-    if "+" in s or "delay" in s:
+def get_status_color(status):
+    if status == "Updated":
         return "#ff0"
-
     return "#0f0"
 
 
 def short_destination(dest):
+    if dest == None:
+        return "?"
+
     if dest == "DC Oshawa GO":
         return "Oshawa"
-
-    if dest == "Union":
-        return "Union"
 
     if len(dest) > 12:
         return dest[:12]
@@ -76,17 +50,15 @@ def short_destination(dest):
     return dest
 
 
-def direction_label(direction):
+def direction_short(direction):
     if direction == "Inbound":
         return "WB"
-
     if direction == "Outbound":
         return "EB"
+    return "GO"
 
-    return direction[:2]
 
-
-def fetch_departures(line, station):
+def fetch_data(line, station):
     url = API_URL % (line, station)
 
     res = http.get(
@@ -95,105 +67,119 @@ def fetch_departures(line, station):
     )
 
     if res.status_code != 200:
-        fail("GO Tracker API failed: %d" % res.status_code)
+        fail("HTTP error %d" % res.status_code)
 
     data = res.json()
 
     if data.get("errCode") != 0:
-        fail("GO Tracker API error: %s" % data.get("errMsg"))
+        fail("API error")
 
     return data
 
 
-def flatten_departures(data, wanted_direction):
+def flatten_trips(data, wanted_direction):
     trips = []
 
-    for direction in data.get("directions", []):
+    directions = data.get("directions")
+    if directions == None:
+        return trips
+
+    for direction in directions:
         dir_name = direction.get("direction")
 
         if wanted_direction != "Both" and dir_name != wanted_direction:
             continue
 
-        for trip in direction.get("tripMessages", []):
-            scheduled = trip.get("scheduled")
-            actual = trip.get("actual")
+        trip_messages = direction.get("tripMessages")
+        if trip_messages == None:
+            continue
 
-            status = delay_text(scheduled, actual)
-
+        for trip in trip_messages:
             trips.append({
                 "direction": dir_name,
-                "destination": trip.get("destination") or "?",
-                "scheduled": scheduled,
-                "actual": actual,
-                "track": trip.get("track") or "?",
-                "tripName": trip.get("tripName") or "",
-                "coachCount": trip.get("coachCount") or 0,
-                "isExpress": trip.get("isExpress") or False,
-                "status": status,
+                "destination": trip.get("destination"),
+                "scheduled": trip.get("scheduled"),
+                "actual": trip.get("actual"),
+                "track": trip.get("track"),
+                "tripName": trip.get("tripName"),
+                "coachCount": trip.get("coachCount"),
+                "isExpress": trip.get("isExpress"),
             })
 
     return trips
 
 
-def trip_slide(line, station, trip):
-    dest = short_destination(trip["destination"])
-    sched = time_part(trip["scheduled"])
-    actual = time_part(trip["actual"])
-    track = trip["track"]
-    status = trip["status"]
-    coaches = trip["coachCount"]
+def trip_screen(line, station, trip):
+    destination = short_destination(trip.get("destination"))
+    scheduled = time_part(trip.get("scheduled"))
+    actual = time_part(trip.get("actual"))
 
-    express = ""
-    if trip["isExpress"]:
-        express = " EXP"
+    track = trip.get("track")
+    if track == None or track == "":
+        track = "?"
+
+    coach_count = trip.get("coachCount")
+    if coach_count == None:
+        coach_count = "?"
+    else:
+        coach_count = str(coach_count)
+
+    status = get_status(trip.get("scheduled"), trip.get("actual"))
+
+    detail = "%s P%s" % (scheduled, track)
+
+    if actual != scheduled:
+        detail = "%s>%s P%s" % (scheduled, actual, track)
 
     return render.Box(
         color = "#000",
         child = render.Column(
             children = [
                 render.Text(
-                    content = "%s %s/%s" % (direction_label(trip["direction"]), line, station),
+                    content = "%s %s/%s" % (
+                        direction_short(trip.get("direction")),
+                        line,
+                        station,
+                    ),
                     font = "tom-thumb",
                     color = "#888",
                 ),
                 render.Text(
-                    content = dest,
+                    content = destination,
                     font = "6x10",
                     color = "#fff",
                 ),
                 render.Text(
-                    content = "%s P%s" % (sched, track),
+                    content = detail,
                     font = "6x10",
                     color = "#0cf",
                 ),
                 render.Text(
-                    content = "%s %sC%s" % (status, coaches, express),
+                    content = "%s %sC" % (status, coach_count),
                     font = "tom-thumb",
-                    color = status_color(status),
+                    color = get_status_color(status),
                 ),
             ],
         ),
     )
 
 
-def no_trips_slide(line, station):
-    return render.Root(
-        child = render.Box(
-            color = "#000",
-            child = render.Column(
-                children = [
-                    render.Text(
-                        content = "%s/%s" % (line, station),
-                        font = "6x10",
-                        color = "#0cf",
-                    ),
-                    render.Text(
-                        content = "No trips",
-                        font = "6x10",
-                        color = "#f66",
-                    ),
-                ],
-            ),
+def no_trips_screen(line, station):
+    return render.Box(
+        color = "#000",
+        child = render.Column(
+            children = [
+                render.Text(
+                    content = "%s/%s" % (line, station),
+                    font = "6x10",
+                    color = "#0cf",
+                ),
+                render.Text(
+                    content = "No trips",
+                    font = "6x10",
+                    color = "#f66",
+                ),
+            ],
         ),
     )
 
@@ -203,25 +189,26 @@ def main(config):
     station = config.get("station") or DEFAULT_STATION
     wanted_direction = config.get("direction") or DEFAULT_DIRECTION
 
-    data = fetch_departures(line, station)
-    trips = flatten_departures(data, wanted_direction)
+    data = fetch_data(line, station)
+    trips = flatten_trips(data, wanted_direction)
 
     if len(trips) == 0:
-        return no_trips_slide(line, station)
+        return render.Root(
+            child = no_trips_screen(line, station),
+        )
 
-    slides = []
+    screens = []
 
-    # Show first 4 trips as rotating frames.
     count = len(trips)
     if count > 4:
         count = 4
 
     for i in range(count):
-        slides.append(trip_slide(line, station, trips[i]))
+        screens.append(trip_screen(line, station, trips[i]))
 
     return render.Root(
         delay = 5000,
         child = render.Animation(
-            children = slides,
+            children = screens,
         ),
     )
