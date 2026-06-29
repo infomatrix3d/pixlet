@@ -612,7 +612,7 @@ jobs:
           </html>
           EOF
 
-          sed "s|__RAW_BASE_URL__|${RAW_BASE_URL}|g" index.template.html > index.html
+          sed "s|__RAW_BASE_URL__|${RAW_BASE_URL}|g" index.template.html > web/index.html
           rm -f index.template.html
 
       - name: Show generated files
