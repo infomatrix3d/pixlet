@@ -54,7 +54,7 @@ def get_lat_lon(api_key, zip_code):
         return coords["lat"], coords["lon"]
 
     resp = http.get(OW_GEO_URL, params = {
-        "zip": zip_code + ",US",
+        "zip": zip_code,
         "appid": api_key,
     })
     if resp.status_code != 200:
