@@ -628,14 +628,15 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+      
           git fetch origin main
-
+      
           git add -A output index.html
-
+      
           if git diff --cached --quiet; then
             echo "No changes"
           else
             git commit -m "Update catalog, webp previews, and index page"
+            git rebase origin/main
             git push origin HEAD:main
           fi
