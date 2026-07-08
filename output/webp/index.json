@@ -1,12 +1,6 @@
 {
   "skynews": [
     {
-      "name": "default",
-      "file": "output/webp/skynews/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
       "name": "default_2x",
       "file": "output/webp/skynews/default_2x.webp",
       "config": {},
@@ -206,28 +200,6 @@
       "name": "default_2x",
       "file": "output/webp/weather/default_2x.webp",
       "config": {},
-      "is_2x": true
-    },
-    {
-      "name": "toronto_metric",
-      "file": "output/webp/weather/toronto_metric.webp",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "units": "metric",
-        "showthreeday": false,
-        "api_v2": "$WEATHER_API_KEY"
-      },
-      "is_2x": false
-    },
-    {
-      "name": "toronto_metric_2x",
-      "file": "output/webp/weather/toronto_metric_2x.webp",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}",
-        "units": "metric",
-        "showthreeday": false,
-        "api_v2": "$WEATHER_API_KEY"
-      },
       "is_2x": true
     }
   ],
