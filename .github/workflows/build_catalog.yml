@@ -624,6 +624,7 @@ jobs:
         run: |
           rm -rf community-apps
 
+
       - name: Commit and push results
         run: |
           git config --global user.name "github-actions[bot]"
@@ -637,6 +638,9 @@ jobs:
             echo "No changes"
           else
             git commit -m "Update catalog, webp previews, and index page"
-            git rebase origin/main
+            
+            # Merge with theirs strategy to keep our generated files in case of conflict
+            git merge -X theirs origin/main
+            
             git push origin HEAD:main
           fi
