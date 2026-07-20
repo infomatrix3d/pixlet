@@ -1,18 +1,5 @@
 {
-  "skynews": [
-    {
-      "name": "default",
-      "file": "output/webp/skynews/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/skynews/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "skynews": [],
   "espnnews": [
     {
       "name": "default",
@@ -111,7 +98,20 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [],
+  "nflstandings": [
+    {
+      "name": "default",
+      "file": "output/webp/nflstandings/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/nflstandings/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "ncaawscores": [
     {
       "name": "default",
