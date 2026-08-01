@@ -275,14 +275,6 @@
       "is_2x": true
     },
     {
-      "name": "toronto",
-      "file": "output/webp/prayer_times/toronto.webp",
-      "config": {
-        "location": "{\"lat\":\"43.6532\",\"lng\":\"-79.3832\",\"locality\":\"Toronto\",\"timezone\":\"America/Toronto\"}"
-      },
-      "is_2x": false
-    },
-    {
       "name": "toronto_2x",
       "file": "output/webp/prayer_times/toronto_2x.webp",
       "config": {
