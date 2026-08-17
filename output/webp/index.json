@@ -111,7 +111,20 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [],
+  "nflstandings": [
+    {
+      "name": "default",
+      "file": "output/webp/nflstandings/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/nflstandings/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "ncaawscores": [
     {
       "name": "default",
@@ -142,10 +155,10 @@
   ],
   "formula1": [
     {
-      "name": "default_2x",
-      "file": "output/webp/formula1/default_2x.webp",
+      "name": "default",
+      "file": "output/webp/formula1/default.webp",
       "config": {},
-      "is_2x": true
+      "is_2x": false
     }
   ],
   "worldcup": [
