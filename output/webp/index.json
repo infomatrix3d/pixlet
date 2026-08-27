@@ -112,14 +112,7 @@
     }
   ],
   "nflstandings": [],
-  "ncaawscores": [
-    {
-      "name": "default_2x",
-      "file": "output/webp/ncaawscores/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "ncaawscores": [],
   "cflscores": [
     {
       "name": "default",
