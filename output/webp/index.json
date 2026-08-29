@@ -127,10 +127,10 @@
   ],
   "ncaawscores": [
     {
-      "name": "default_2x",
-      "file": "output/webp/ncaawscores/default_2x.webp",
+      "name": "default",
+      "file": "output/webp/ncaawscores/default.webp",
       "config": {},
-      "is_2x": true
+      "is_2x": false
     }
   ],
   "cflscores": [
@@ -147,7 +147,20 @@
       "is_2x": true
     }
   ],
-  "formula1": [],
+  "formula1": [
+    {
+      "name": "default",
+      "file": "output/webp/formula1/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/formula1/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcup": [
     {
       "name": "default",
