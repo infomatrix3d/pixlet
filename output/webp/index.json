@@ -15,6 +15,12 @@
   ],
   "espnnews": [
     {
+      "name": "default",
+      "file": "output/webp/espnnews/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/espnnews/default_2x.webp",
       "config": {},
@@ -141,6 +147,12 @@
       "file": "output/webp/formula1/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/formula1/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "worldcup": [
