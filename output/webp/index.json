@@ -113,10 +113,10 @@
   ],
   "nflstandings": [
     {
-      "name": "default",
-      "file": "output/webp/nflstandings/default.webp",
+      "name": "default_2x",
+      "file": "output/webp/nflstandings/default_2x.webp",
       "config": {},
-      "is_2x": false
+      "is_2x": true
     }
   ],
   "ncaawscores": [],
