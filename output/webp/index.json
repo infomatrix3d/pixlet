@@ -111,14 +111,7 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [
-    {
-      "name": "default_2x",
-      "file": "output/webp/nflstandings/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "nflstandings": [],
   "ncaawscores": [],
   "cflscores": [
     {
@@ -345,12 +338,6 @@
     }
   ],
   "bitcointicker": [
-    {
-      "name": "default",
-      "file": "output/webp/bitcointicker/default.webp",
-      "config": {},
-      "is_2x": false
-    },
     {
       "name": "default_2x",
       "file": "output/webp/bitcointicker/default_2x.webp",
