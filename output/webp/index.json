@@ -111,15 +111,15 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [],
-  "ncaawscores": [
+  "nflstandings": [
     {
-      "name": "default_2x",
-      "file": "output/webp/ncaawscores/default_2x.webp",
+      "name": "default",
+      "file": "output/webp/nflstandings/default.webp",
       "config": {},
-      "is_2x": true
+      "is_2x": false
     }
   ],
+  "ncaawscores": [],
   "cflscores": [
     {
       "name": "default",
