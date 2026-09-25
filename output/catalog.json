@@ -447,6 +447,12 @@
           "description": "Toggle between three day and single day display.",
           "default": true
         },
+        "extended_forecast": {
+          "type": "boolean",
+          "label": "Extended Forecast",
+          "description": "In the three day display, slide over to the following three days.",
+          "default": true
+        },
         "units": {
           "type": "string",
           "label": "Units",
@@ -455,6 +461,18 @@
         },
         "api_v3": {
           "type": "string"
+        },
+        "current_conditions": {
+          "type": "boolean",
+          "label": "Current Conditions Icon",
+          "description": "Show today's current conditions instead of the daily forecast icon. Uses one extra One Call API 4.0 call per refresh.",
+          "default": false
+        },
+        "current_temp": {
+          "type": "boolean",
+          "label": "Current Temperature",
+          "description": "Show the current temperature in place of today's day name. Requires a One Call key; uses one extra One Call API 4.0 call per refresh.",
+          "default": false
         },
         "api_v2": {
           "type": "string",
