@@ -89,6 +89,12 @@
       "file": "output/webp/nhlstandings/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/nhlstandings/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "nbastandings": [
@@ -105,7 +111,14 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [],
+  "nflstandings": [
+    {
+      "name": "default",
+      "file": "output/webp/nflstandings/default.webp",
+      "config": {},
+      "is_2x": false
+    }
+  ],
   "ncaawscores": [
     {
       "name": "default",
