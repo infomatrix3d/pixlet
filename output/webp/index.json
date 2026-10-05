@@ -183,12 +183,6 @@
   ],
   "worldcuptoday": [
     {
-      "name": "default",
-      "file": "output/webp/worldcuptoday/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
       "name": "default_2x",
       "file": "output/webp/worldcuptoday/default_2x.webp",
       "config": {},
