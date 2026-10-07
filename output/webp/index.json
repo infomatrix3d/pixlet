@@ -167,7 +167,14 @@
       "is_2x": true
     }
   ],
-  "worldcup": [],
+  "worldcup": [
+    {
+      "name": "default_2x",
+      "file": "output/webp/worldcup/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcuptoday": [
     {
       "name": "default",
