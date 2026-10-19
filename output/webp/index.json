@@ -85,6 +85,12 @@
   ],
   "nhlstandings": [
     {
+      "name": "default",
+      "file": "output/webp/nhlstandings/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/nhlstandings/default_2x.webp",
       "config": {},
@@ -139,6 +145,12 @@
       "file": "output/webp/cflscores/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/cflscores/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "formula1": [
@@ -170,6 +182,12 @@
     }
   ],
   "worldcuptoday": [
+    {
+      "name": "default",
+      "file": "output/webp/worldcuptoday/default.webp",
+      "config": {},
+      "is_2x": false
+    },
     {
       "name": "default_2x",
       "file": "output/webp/worldcuptoday/default_2x.webp",
