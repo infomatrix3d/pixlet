@@ -39,16 +39,16 @@
       "is_2x": true
     }
   ],
-  "nflstandings": [
+  "nfl_standings": [
     {
-      "name": "NFC standing",
+      "name": "NFC_standing",
       "config": {
         "divisionType": "NFC",
       },
       "is_2x": false
     },
     {
-      "name": "toronto_metric_2x",
+      "name": "NFC_standing_2x",
       "config": {
         "divisionType": "NFC",
       },
