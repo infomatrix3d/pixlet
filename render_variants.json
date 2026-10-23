@@ -43,14 +43,14 @@
     {
       "name": "NFC_standing",
       "config": {
-        "division": "NFC"
+        "divisionType": "nfc"
       },
       "is_2x": false
     },
     {
       "name": "NFC_standing_2x",
       "config": {
-        "division": "NFC"
+        "divisionType": "nfc"
       },
       "is_2x": true
     }
