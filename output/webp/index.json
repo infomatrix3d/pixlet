@@ -313,14 +313,6 @@
         "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
       },
       "is_2x": true
-    },
-    {
-      "name": "newyork",
-      "file": "output/webp/prayer_times/newyork.webp",
-      "config": {
-        "location": "{\"lat\":\"40.7128\",\"lng\":\"-74.0060\",\"locality\":\"New York\",\"timezone\":\"America/New_York\"}"
-      },
-      "is_2x": false
     }
   ],
   "weathersnapshot": [
