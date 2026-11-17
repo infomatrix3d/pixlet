@@ -55,20 +55,7 @@
       "is_2x": true
     }
   ],
-  "financialtimes": [
-    {
-      "name": "default",
-      "file": "output/webp/financialtimes/default.webp",
-      "config": {},
-      "is_2x": false
-    },
-    {
-      "name": "default_2x",
-      "file": "output/webp/financialtimes/default_2x.webp",
-      "config": {},
-      "is_2x": true
-    }
-  ],
+  "financialtimes": [],
   "abcnews": [
     {
       "name": "default",
