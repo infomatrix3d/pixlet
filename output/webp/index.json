@@ -69,7 +69,20 @@
       "is_2x": true
     }
   ],
-  "abcnews": [],
+  "abcnews": [
+    {
+      "name": "default",
+      "file": "output/webp/abcnews/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/abcnews/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "nhlstandings": [
     {
       "name": "default",
@@ -100,10 +113,24 @@
   ],
   "nflstandings": [
     {
+      "name": "default",
+      "file": "output/webp/nflstandings/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
       "name": "default_2x",
       "file": "output/webp/nflstandings/default_2x.webp",
       "config": {},
       "is_2x": true
+    },
+    {
+      "name": "nfc_standing",
+      "file": "output/webp/nflstandings/nfc_standing.webp",
+      "config": {
+        "divisionType": "nfc"
+      },
+      "is_2x": false
     },
     {
       "name": "nfc_standing_2x",
@@ -120,9 +147,21 @@
       "file": "output/webp/ncaawscores/default.webp",
       "config": {},
       "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/ncaawscores/default_2x.webp",
+      "config": {},
+      "is_2x": true
     }
   ],
   "cflscores": [
+    {
+      "name": "default",
+      "file": "output/webp/cflscores/default.webp",
+      "config": {},
+      "is_2x": false
+    },
     {
       "name": "default_2x",
       "file": "output/webp/cflscores/default_2x.webp",
@@ -144,7 +183,20 @@
       "is_2x": true
     }
   ],
-  "worldcup": [],
+  "worldcup": [
+    {
+      "name": "default",
+      "file": "output/webp/worldcup/default.webp",
+      "config": {},
+      "is_2x": false
+    },
+    {
+      "name": "default_2x",
+      "file": "output/webp/worldcup/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ],
   "worldcuptoday": [
     {
       "name": "default",
