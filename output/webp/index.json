@@ -125,6 +125,14 @@
       "is_2x": true
     },
     {
+      "name": "nfc_standing",
+      "file": "output/webp/nflstandings/nfc_standing.webp",
+      "config": {
+        "divisionType": "nfc"
+      },
+      "is_2x": false
+    },
+    {
       "name": "nfc_standing_2x",
       "file": "output/webp/nflstandings/nfc_standing_2x.webp",
       "config": {
