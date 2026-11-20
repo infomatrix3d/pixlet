@@ -48,7 +48,7 @@ CATEGORY_LABELS = {
 }
 
 DEFAULT_CATEGORY = "markets"
-DEFAULT_COUNT = "5"
+DEFAULT_COUNT = "8"
 DEFAULT_SLOT_COUNT = "3"  # default headline count for the optional Section 2/3 slots
 DEFAULT_SPEED = "medium"
 DEFAULT_HEADER = "logo_right"
