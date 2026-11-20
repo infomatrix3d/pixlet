@@ -1,0 +1,71 @@
+{
+  "name": "bloombergnews",
+  "configSchema": {
+    "theme": {
+      "type": "string",
+      "label": "Color theme",
+      "description": "Banner, headline and timestamp colors.",
+      "default": "DEFAULT_THEME"
+    },
+    "header": {
+      "type": "string",
+      "label": "Header",
+      "description": "Style of the top banner.",
+      "default": "DEFAULT_HEADER"
+    },
+    "section_1": {
+      "type": "string",
+      "label": "Section 1",
+      "description": "Which Bloomberg section to pull headlines from first.",
+      "default": "DEFAULT_CATEGORY"
+    },
+    "section_2": {
+      "type": "string",
+      "label": "Section 2"
+    },
+    "section_3": {
+      "type": "string",
+      "label": "Section 3",
+      "description": "Optional third section, added after Section 2. Ignored unless Section 2 is also set.",
+      "default": "none"
+    },
+    "custom_url": {
+      "type": "string",
+      "label": "Custom feed URL",
+      "description": "Optional. Any RSS feed URL. Overrides all Section slots when set.",
+      "default": ""
+    },
+    "mode": {
+      "type": "string",
+      "label": "Display mode"
+    },
+    "transition": {
+      "type": "string",
+      "label": "Transition",
+      "description": "How headlines change in 'one at a time' mode.",
+      "default": "DEFAULT_TRANSITION"
+    },
+    "speed": {
+      "type": "string",
+      "label": "Speed",
+      "description": "How fast headlines advance / scroll.",
+      "default": "DEFAULT_SPEED"
+    },
+    "refresh": {
+      "type": "string",
+      "label": "Refresh interval",
+      "description": "How often to fetch new headlines from Bloomberg.",
+      "default": "DEFAULT_REFRESH"
+    },
+    "show_time": {
+      "type": "boolean",
+      "label": "Show timestamp"
+    },
+    "tz": {
+      "type": "string",
+      "label": "Time zone",
+      "description": "Zone for the timestamp, if 'Show timestamp' is on.",
+      "default": "DEFAULT_TZ"
+    }
+  }
+}
