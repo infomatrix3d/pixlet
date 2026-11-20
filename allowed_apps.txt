@@ -13,9 +13,6 @@ ncaawscores
 cflscores
 formula1
 
-worldcup
-worldcuptoday
-
 
 weather
 analogclock
