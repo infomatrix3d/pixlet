@@ -365,5 +365,12 @@
       "is_2x": true
     }
   ],
-  "bloombergnews": []
+  "bloombergnews": [
+    {
+      "name": "default_2x",
+      "file": "output/webp/bloombergnews/default_2x.webp",
+      "config": {},
+      "is_2x": true
+    }
+  ]
 }
